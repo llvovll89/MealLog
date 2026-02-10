@@ -13,21 +13,21 @@ const Navigation = ({ currentTab, onTabChange }: NavigationProps) => {
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <nav className="glass border-b border-white/30 sticky top-[72px] z-40 backdrop-blur-xl shadow-soft">
       <div className="max-w-4xl mx-auto px-2">
-        <div className="flex justify-around py-2">
+        <div className="flex justify-around py-3">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center px-2 py-1 rounded-lg transition-all duration-200 ${
+              className={`flex flex-col items-center px-3 py-2 rounded-xl transition-all duration-300 transform ${
                 currentTab === tab.id
-                  ? 'bg-black text-white font-semibold'
-                  : 'text-gray-500 hover:text-black hover:bg-gray-100'
+                  ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white font-semibold shadow-glow scale-105'
+                  : 'text-gray-700 hover:text-purple-600 hover:bg-white/50 hover:scale-105 hover:shadow-soft'
               }`}
             >
-              <span className="text-lg mb-0.5">{tab.emoji}</span>
-              <span className="text-[10px]">{tab.label}</span>
+              <span className="text-2xl mb-1 filter drop-shadow-sm">{tab.emoji}</span>
+              <span className="text-[11px] font-medium">{tab.label}</span>
             </button>
           ))}
         </div>

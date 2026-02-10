@@ -30,7 +30,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-safe">
+    <div className="min-h-screen pb-safe">
       <Header />
       <Navigation currentTab={currentTab} onTabChange={setCurrentTab} />
       <main className="py-4 pb-6">
