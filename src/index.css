@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "./styles/font.css";
+
+body {
+  margin: 0;
+  font-family: "Pretendard", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
