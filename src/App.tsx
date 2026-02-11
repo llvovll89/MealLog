@@ -44,12 +44,6 @@ const RequireProfile = ({ children, onSettingsClick }: { children: React.ReactNo
 
 function App() {
   const [currentTab, setCurrentTab] = useState<Tab>('recommend');
-  const [hasProfile, setHasProfile] = useState(false);
-
-  const checkProfile = () => {
-    const profile = getProfile();
-    setHasProfile(!!(profile && profile.height && profile.weight));
-  };
 
   const goToSettings = () => {
     setCurrentTab('settings');
@@ -90,15 +84,11 @@ function App() {
       case 'bmi':
         return <BMICalculator />;
       case 'settings':
-        return <ProfileSetting onProfileSaved={checkProfile} />;
+        return <ProfileSetting />;
       default:
         return <MealRecommendation />;
     }
   };
-
-  useEffect(() => {
-    checkProfile();
-  }, []);
 
   return (
     <div className="min-h-screen pb-safe">

@@ -2,11 +2,7 @@ import { useState, useEffect } from 'react';
 import { getProfile, saveProfile, clearAllData } from '../utils/storage';
 import { calculateBMI } from '../utils/bmiCalculator';
 
-interface ProfileSettingProps {
-  onProfileSaved?: () => void;
-}
-
-const ProfileSetting = ({ onProfileSaved }: ProfileSettingProps = {}) => {
+const ProfileSetting = () => {
   const [name, setName] = useState('');
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
@@ -44,11 +40,6 @@ const ProfileSetting = ({ onProfileSaved }: ProfileSettingProps = {}) => {
       calorieGoal: calorieGoalNum,
     });
     alert('프로필이 저장되었습니다!');
-
-    // 프로필 저장 후 콜백 호출
-    if (onProfileSaved) {
-      onProfileSaved();
-    }
   };
 
   const handleClearData = () => {
@@ -63,11 +54,6 @@ const ProfileSetting = ({ onProfileSaved }: ProfileSettingProps = {}) => {
       setWeight('');
       setCalorieGoal('');
       alert('모든 데이터가 삭제되었습니다.');
-
-      // 데이터 초기화 후 콜백 호출
-      if (onProfileSaved) {
-        onProfileSaved();
-      }
     }
   };
 
@@ -197,7 +183,7 @@ const ProfileSetting = ({ onProfileSaved }: ProfileSettingProps = {}) => {
           {/* 앱 정보 */}
           <div className="pt-6 border-t border-black/20 text-center">
             <p className="text-gray-900 font-semibold mb-1 text-sm">
-              MealLog v1.0
+              MealLog v1.1
             </p>
             <p className="text-xs text-gray-700">
               맛있는 하루를 기록하세요
