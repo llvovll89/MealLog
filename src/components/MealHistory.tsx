@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
 import type { MealRecord } from '../types';
-import { getMealRecords, deleteMealRecord } from '../utils/storage';
+import { getMealRecords, deleteMealRecord, getProfile } from '../utils/storage';
 import { getMealTypeLabel, formatDateDisplay } from '../utils/recommendationEngine';
+import { menuDatabase } from '../data/menuDatabase';
 
 const MealHistory = () => {
   const [records, setRecords] = useState<MealRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>('');
+  const [calorieGoal, setCalorieGoal] = useState<number | null>(null);
 
   useEffect(() => {
     loadRecords();
+    const profile = getProfile();
+    if (profile?.calorieGoal) {
+      setCalorieGoal(profile.calorieGoal);
+    }
   }, []);
 
   const loadRecords = () => {
@@ -43,12 +49,24 @@ const MealHistory = () => {
     dinner: '🌙',
   };
 
+  const getMenuCalories = (menuName: string) => {
+    const menuItem = menuDatabase.find(item => item.name === menuName);
+    return menuItem?.calories || null;
+  };
+
+  const getDailyCalories = (dateRecords: MealRecord[]) => {
+    return dateRecords.reduce((total, record) => {
+      const calories = getMenuCalories(record.menu);
+      return total + (calories || 0);
+    }, 0);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="glass border border-white/30 rounded-3xl shadow-strong p-6 backdrop-blur-xl">
+      <div className="glass border border-black/20 rounded-3xl shadow-strong p-6 backdrop-blur-xl">
         <div className="text-center mb-5">
           <span className="text-3xl">📚</span>
-          <h2 className="text-xl font-bold text-gray-800 mt-2 mb-1 tracking-tight">
+          <h2 className="text-xl font-bold text-gray-900 mt-2 mb-1 tracking-tight">
             식사 히스토리
           </h2>
         </div>
@@ -63,7 +81,7 @@ const MealHistory = () => {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex-1 px-4 py-2.5 border-2 border-white/50 bg-white/80 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-200 focus:outline-none transition-all text-sm backdrop-blur-sm"
+              className="flex-1 px-4 py-2.5 border-2 border-black/20 bg-white/80 rounded-xl focus:border-gray-700 focus:ring-4 focus:ring-gray-200 focus:outline-none transition-all text-sm backdrop-blur-sm"
             />
             {selectedDate && (
               <button
@@ -85,34 +103,75 @@ const MealHistory = () => {
               <p className="text-xs mt-1">기록 탭에서 식사를 기록해보세요!</p>
             </div>
           ) : (
-            Object.entries(recordsByDate).map(([date, dateRecords]) => (
-              <div key={date} className="bg-white/50 border border-white/50 rounded-2xl p-4 backdrop-blur-sm">
-                <h3 className="text-base font-bold text-gray-800 mb-3">
-                  {formatDateDisplay(date)}
-                </h3>
-                <div className="space-y-2">
+            Object.entries(recordsByDate).map(([date, dateRecords]) => {
+              const dailyCalories = getDailyCalories(dateRecords);
+              const caloriePercentage = calorieGoal ? (dailyCalories / calorieGoal) * 100 : 0;
+              const isOverGoal = calorieGoal && dailyCalories > calorieGoal;
+
+              return (
+                <div key={date} className="bg-white/50 border border-black/20 rounded-2xl p-4 backdrop-blur-sm">
+                  <div className="mb-3">
+                    <h3 className="text-base font-bold text-gray-900">
+                      {formatDateDisplay(date)}
+                    </h3>
+                    {calorieGoal && (
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-gray-700">
+                            칼로리 섭취량
+                          </span>
+                          <span className={`text-xs font-semibold ${isOverGoal ? 'text-red-600' : 'text-green-600'}`}>
+                            {dailyCalories}kcal / {calorieGoal}kcal
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-300 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all ${
+                              isOverGoal
+                                ? 'bg-gradient-to-r from-red-600 to-pink-600'
+                                : 'bg-gradient-to-r from-green-600 to-emerald-600'
+                            }`}
+                            style={{ width: `${Math.min(caloriePercentage, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2">
                   {dateRecords.map((record) => (
                     <div
                       key={record.id}
-                      className="bg-white/80 border border-white/50 rounded-xl p-3 hover:border-purple-400 hover:shadow-soft transition-all transform hover:scale-105 duration-300"
+                      className="bg-white/80 border border-black/20 rounded-xl p-3 hover:border-gray-600 hover:shadow-soft transition-all transform hover:scale-105 duration-300"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2 flex-1">
+                          <span className="text-lg mt-0.5">
                             {mealTypeEmoji[record.mealType]}
                           </span>
-                          <div>
-                            <p className="font-semibold text-gray-800 text-sm">
+                          <div className="flex-1">
+                            {record.imageUrl && (
+                              <img
+                                src={record.imageUrl}
+                                alt={record.menu}
+                                className="w-full h-32 object-cover rounded-lg mb-2 border border-black/20"
+                              />
+                            )}
+                            <p className="font-semibold text-gray-900 text-sm">
                               {record.menu}
+                              {getMenuCalories(record.menu) && (
+                                <span className="text-xs text-gray-600 ml-2 font-normal">
+                                  {getMenuCalories(record.menu)}kcal
+                                </span>
+                              )}
                             </p>
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-gray-700">
                               {getMealTypeLabel(record.mealType)}
                             </p>
                           </div>
                         </div>
                         <button
                           onClick={() => handleDelete(record.id)}
-                          className="px-3 py-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 hover:shadow-glow transition-all font-medium text-xs transform hover:scale-105"
+                          className="px-3 py-1.5 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg hover:from-red-700 hover:to-pink-700 hover:shadow-glow transition-all font-medium text-xs transform hover:scale-105 flex-shrink-0"
                         >
                           🗑️ 삭제
                         </button>
@@ -121,7 +180,8 @@ const MealHistory = () => {
                   ))}
                 </div>
               </div>
-            ))
+            );
+            })
           )}
         </div>
       </div>

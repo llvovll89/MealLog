@@ -1,9 +1,10 @@
-import type { MealRecord, UserProfile, CustomMenu } from '../types';
+import type { MealRecord, UserProfile, CustomMenu, WeightRecord } from '../types';
 
 const STORAGE_KEYS = {
   PROFILE: 'mealog_profile',
   MEAL_RECORDS: 'mealog_meal_records',
   CUSTOM_MENUS: 'mealog_custom_menus',
+  WEIGHT_RECORDS: 'mealog_weight_records',
 };
 
 // 프로필 관련
@@ -61,9 +62,34 @@ export const deleteCustomMenu = (id: string): void => {
   localStorage.setItem(STORAGE_KEYS.CUSTOM_MENUS, JSON.stringify(menus));
 };
 
+// 체중 기록 관련
+export const saveWeightRecord = (record: WeightRecord): void => {
+  const records = getWeightRecords();
+  records.push(record);
+  localStorage.setItem(STORAGE_KEYS.WEIGHT_RECORDS, JSON.stringify(records));
+};
+
+export const getWeightRecords = (): WeightRecord[] => {
+  const data = localStorage.getItem(STORAGE_KEYS.WEIGHT_RECORDS);
+  return data ? JSON.parse(data) : [];
+};
+
+export const deleteWeightRecord = (id: string): void => {
+  const records = getWeightRecords().filter(record => record.id !== id);
+  localStorage.setItem(STORAGE_KEYS.WEIGHT_RECORDS, JSON.stringify(records));
+};
+
+export const updateWeightRecord = (id: string, updatedRecord: Partial<WeightRecord>): void => {
+  const records = getWeightRecords().map(record =>
+    record.id === id ? { ...record, ...updatedRecord } : record
+  );
+  localStorage.setItem(STORAGE_KEYS.WEIGHT_RECORDS, JSON.stringify(records));
+};
+
 // 모든 데이터 초기화
 export const clearAllData = (): void => {
   localStorage.removeItem(STORAGE_KEYS.PROFILE);
   localStorage.removeItem(STORAGE_KEYS.MEAL_RECORDS);
   localStorage.removeItem(STORAGE_KEYS.CUSTOM_MENUS);
+  localStorage.removeItem(STORAGE_KEYS.WEIGHT_RECORDS);
 };

@@ -5,13 +5,13 @@
 
 @layer utilities {
   .glass {
-    background: rgba(249, 249, 249, 0.861);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
 
   .glass-dark {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
@@ -28,7 +28,7 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #000000, #4a4a4a);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
@@ -39,9 +39,9 @@
 body {
   margin: 0;
   font-family: "Pretendard", sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-attachment: fixed;
   min-height: 100vh;
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
 }
 
 * {

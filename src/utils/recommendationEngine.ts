@@ -69,12 +69,19 @@ export const getRecentMeals = (currentMealType: MealType): string[] => {
 
 export const getRecommendedMenus = (
   currentMealType: MealType,
-  count: number = 5
+  count: number = 5,
+  category?: string
 ): string[] => {
   const recentMenus = getRecentMeals(currentMealType);
 
+  // 카테고리 필터 적용
+  let filteredMenus = menuDatabase;
+  if (category && category !== '전체') {
+    filteredMenus = menuDatabase.filter(item => item.category === category);
+  }
+
   // 최근 메뉴 제외
-  const availableMenus = menuDatabase
+  const availableMenus = filteredMenus
     .map(item => item.name)
     .filter(name => !recentMenus.includes(name));
 
