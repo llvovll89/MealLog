@@ -1,73 +1,277 @@
-# React + TypeScript + Vite
+# MealLog 🍽️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **오늘은 뭐 먹지? 맛있는 하루를 기록해보세요**
 
-Currently, two official plugins are available:
+MealLog는 식사 기록과 건강 관리를 한 번에 해결하는 스마트한 식단 관리 웹 애플리케이션입니다. 시간대별 맞춤 메뉴 추천부터 체중 추적, 영양 통계까지 - 당신의 건강한 식습관을 함께 만들어갑니다.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 주요 기능
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🎰 스마트 메뉴 추천
+- **시간 기반 자동 추천**: 현재 시간에 따라 아침/점심/저녁 메뉴를 자동으로 구분
+- **중복 방지 알고리즘**: 최근 먹은 음식을 제외하고 새로운 메뉴를 추천
+- **슬롯 머신 애니메이션**: 재미있는 UI로 식사 고민을 즐겁게 해결
+- **카테고리별 필터링**: 한식, 중식, 일식, 양식, 분식, 기타 중 선택
+- **맞춤 추천 개수**: 3, 5, 7, 10개 중 원하는 만큼 추천받기
 
-## Expanding the ESLint configuration
+### 📝 식사 기록
+- **간편한 입력**: 날짜, 시간대, 메뉴를 빠르게 기록
+- **사진 업로드**: 식사 사진을 촬영하거나 첨부하여 기억에 남기기
+- **칼로리 자동 계산**: 87개 메뉴의 칼로리 데이터베이스 내장
+- **커스텀 메뉴**: 데이터베이스에 없는 음식도 직접 입력 가능
+- **목표 대비 진행률**: 설정한 일일 칼로리 목표 대비 섭취량 실시간 추적
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 📊 영양 통계 대시보드
+- **기간별 분석**: 주간/월간 식사 패턴 확인
+- **칼로리 트렌드**: 총 칼로리, 평균 칼로리, 식사 횟수 한눈에 보기
+- **카테고리별 분석**: 어떤 음식을 주로 먹는지 비율로 시각화
+- **시간대별 패턴**: 아침/점심/저녁별 섭취 칼로리와 식사 횟수
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 📈 체중 추적
+- **체중 변화 모니터링**: 기록한 체중의 전체 변화량과 백분율 계산
+- **목표 체중 설정**: 목표까지 남은 무게를 실시간으로 표시
+- **메모 기능**: 각 기록에 메모 추가 (예: "아침 공복", "운동 후")
+- **히스토리 관리**: 날짜별 체중 기록 조회 및 삭제
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### ⚖️ BMI 계산기
+- **실시간 계산**: 키와 몸무게 입력 시 즉시 BMI 계산
+- **5단계 카테고리**: 저체중/정상/과체중/비만1단계/비만2단계
+- **시각적 피드백**: 카테고리별 색상 구분 (파란색/녹색/황색/주황색/빨간색)
+- **건강 지표**: 각 단계별 설명과 건강 팁 제공
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 📅 식사 히스토리
+- **날짜별 조회**: 과거 식사 기록을 날짜별로 확인
+- **사진 미리보기**: 저장한 식사 사진을 갤러리처럼 탐색
+- **칼로리 요약**: 각 날짜의 총 칼로리와 목표 대비 진행률
+- **기록 관리**: 불필요한 기록 삭제 기능
+
+---
+
+## 기술적 특징
+
+### 아키텍처
+- **Single Page Application**: React 기반 탭 네비게이션 시스템
+- **LocalStorage 기반**: 서버 없이 브라우저에서 모든 데이터 관리
+- **PWA 지원**: 모바일 홈화면에 설치 가능, 오프라인 작동
+- **반응형 디자인**: 모바일부터 데스크톱까지 최적화된 UI
+
+### 기술 스택
+- **React 19** - 최신 React 프레임워크
+- **TypeScript** - 타입 안전성과 개발 생산성
+- **Vite 7** - 빠른 개발 서버와 최적화된 빌드
+- **Tailwind CSS 3** - Utility-first 스타일링
+- **PWA (vite-plugin-pwa)** - Progressive Web App 기능
+
+### 데이터 구조
+```typescript
+// 87개의 메뉴 데이터베이스
+interface MenuItem {
+  name: string;          // 메뉴명
+  category: MenuCategory; // 한식/중식/일식/양식/분식/기타
+  calories: number;       // kcal
+}
+
+// 식사 기록
+interface MealRecord {
+  id: string;            // UUID
+  date: string;          // YYYY-MM-DD
+  mealType: MealType;    // breakfast/lunch/dinner
+  menu: string;
+  timestamp: number;
+  imageUrl?: string;     // Base64 인코딩
+}
+
+// 체중 기록
+interface WeightRecord {
+  id: string;
+  date: string;
+  weight: number;        // kg
+  timestamp: number;
+  note?: string;
+}
+
+// 사용자 프로필
+interface UserProfile {
+  height: number;        // cm
+  weight: number;        // kg
+  name?: string;
+  calorieGoal?: number;  // kcal
+  targetWeight?: number; // kg
+}
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 디자인 시스템
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 색상 팔레트
+- **Primary**: 그레이 계열 (50-900)
+- **Accent**: 블랙/그레이/화이트
+- **Gradient**: 파스텔 그라데이션 배경
+
+### UI 컴포넌트
+- **Glass Morphism**: 반투명 유리 효과의 카드
+- **Soft Shadows**: 부드러운 깊이감
+- **Rounded Design**: 둥근 모서리 (3xl)
+- **Smooth Animations**: 슬라이드, 페이드, 스케일 효과
+
+### 사용자 경험
+- **하단 탭 네비게이션**: 모바일 친화적 인터페이스
+- **토글 가능한 메뉴**: 필요할 때만 열어보는 깔끔한 UI
+- **시각적 피드백**: 호버, 클릭 시 애니메이션 효과
+- **이모지 활용**: 직관적인 아이콘과 감성적인 표현
+
+---
+
+## 핵심 알고리즘
+
+### 추천 엔진 (recommendationEngine.ts)
+```typescript
+// 1. 현재 시간 분석
+- 05:00 ~ 11:00 → 아침
+- 11:00 ~ 16:00 → 점심
+- 16:00 ~ 05:00 → 저녁
+
+// 2. 중복 제외 로직
+- 아침 추천: 어제 저녁 메뉴 제외
+- 점심 추천: 오늘 아침 메뉴 제외
+- 저녁 추천: 오늘 아침 + 점심 메뉴 제외
+
+// 3. 랜덤 선택
+- 조건에 맞는 메뉴 중 N개 랜덤 추출
+- 카테고리 필터 적용 시 해당 카테고리 내에서만 선택
 ```
+
+### BMI 계산 (bmiCalculator.ts)
+```typescript
+BMI = 체중(kg) ÷ (키(m))²
+
+카테고리:
+- 18.5 미만: 저체중 (파란색)
+- 18.5 ~ 23: 정상 (녹색)
+- 23 ~ 25: 과체중 (황색)
+- 25 ~ 30: 비만 1단계 (주황색)
+- 30 이상: 비만 2단계 (빨간색)
+```
+
+---
+
+## 메뉴 데이터베이스
+
+총 **87개의 메뉴**가 등록되어 있으며, 각 메뉴는 칼로리 정보를 포함합니다.
+
+| 카테고리 | 메뉴 수 | 대표 메뉴 |
+|---------|--------|----------|
+| 한식 | 17개 | 김치찌개(450kcal), 불고기(520kcal), 삼겹살(900kcal) |
+| 중식 | 11개 | 짜장면(680kcal), 짬뽕(650kcal), 탕수육(720kcal) |
+| 일식 | 12개 | 초밥(450kcal), 라멘(580kcal), 돈까스(720kcal) |
+| 양식 | 12개 | 파스타(650kcal), 피자(780kcal), 스테이크(850kcal) |
+| 분식 | 10개 | 떡볶이(480kcal), 김밥(380kcal), 라면(520kcal) |
+| 기타 | 10개 | 샐러드(280kcal), 팟타이(580kcal), 파인애플볶음밥(550kcal) |
+
+---
+
+## 프로젝트 구조
+
+```
+MealLog/
+├── src/
+│   ├── components/           # React 컴포넌트
+│   │   ├── Header.tsx       # 헤더 (로고)
+│   │   ├── Navigation.tsx   # 하단 탭 네비게이션
+│   │   ├── MealRecommendation.tsx  # 메뉴 추천
+│   │   ├── MealLogger.tsx   # 식사 기록 입력
+│   │   ├── MealHistory.tsx  # 식사 기록 조회
+│   │   ├── NutritionDashboard.tsx  # 영양 통계
+│   │   ├── WeightTracking.tsx      # 체중 추적
+│   │   ├── BMICalculator.tsx       # BMI 계산기
+│   │   └── ProfileSetting.tsx      # 프로필 설정
+│   ├── data/
+│   │   └── menuDatabase.ts   # 메뉴 데이터베이스
+│   ├── types/
+│   │   └── index.ts         # TypeScript 타입 정의
+│   ├── utils/
+│   │   ├── storage.ts       # LocalStorage 관리
+│   │   ├── bmiCalculator.ts # BMI 계산
+│   │   └── recommendationEngine.ts  # 추천 알고리즘
+│   ├── styles/
+│   │   └── font.css
+│   ├── App.tsx              # 메인 앱
+│   ├── App.css
+│   ├── main.tsx
+│   └── index.css
+├── public/
+│   └── icon.svg             # PWA 아이콘
+├── vite.config.ts           # Vite 설정
+├── tailwind.config.js       # Tailwind 설정
+├── tsconfig.json            # TypeScript 설정
+└── package.json
+```
+
+---
+
+## 사용자 흐름
+
+### 1️⃣ 첫 사용 (온보딩)
+```
+앱 실행 → 프로필 설정 요구 (키/몸무게 필수) → 메인 화면 진입
+```
+
+### 2️⃣ 메뉴 추천받기
+```
+추천 탭 → 카테고리/개수 선택 → 추천받기 버튼 → 슬롯머신 애니메이션 → 결과 확인
+```
+
+### 3️⃣ 식사 기록하기
+```
+기록 탭 → 날짜/시간대 선택 → 메뉴 검색 또는 선택 → (선택) 사진 업로드 → 저장
+```
+
+### 4️⃣ 통계 확인하기
+```
+통계 탭 → 주간/월간 선택 → 칼로리 트렌드 확인 → 카테고리별 분석 → 시간대별 패턴
+```
+
+### 5️⃣ 체중 관리하기
+```
+체중 탭 → 날짜/체중 입력 → (선택) 메모 추가 → 저장 → 변화량 확인
+```
+
+---
+
+## 특별한 기능들
+
+### 슬롯머신 애니메이션
+메뉴 추천 시 각 메뉴가 슬롯머신처럼 회전하다가 순차적으로 멈추는 재미있는 애니메이션을 제공합니다. 단순한 목록 표시가 아닌, 시각적 즐거움을 더한 UX 디자인입니다.
+
+### 프로필 기반 기능 제한
+키와 몸무게를 입력하지 않으면 추천, 기록, 히스토리, 통계, 체중 탭에 접근할 수 없습니다. BMI 계산기와 설정 탭만 사용 가능하며, 이를 통해 사용자가 필수 정보를 입력하도록 유도합니다.
+
+### 실시간 칼로리 추적
+메인 화면에서 오늘의 목표 칼로리 대비 섭취량을 즉시 확인할 수 있으며, 진행률 바로 시각적으로 표현됩니다.
+
+### 데이터 관리
+모든 데이터는 브라우저의 LocalStorage에 저장되어 서버 없이도 작동하며, 설정에서 한 번에 모든 데이터를 초기화할 수 있습니다.
+
+---
+
+## 개발 철학
+
+**"Simple, Smart, Beautiful"**
+
+- **Simple**: 복잡한 설정 없이 바로 사용할 수 있는 직관적인 인터페이스
+- **Smart**: 시간과 기록을 분석하여 최적의 메뉴를 추천하는 지능형 알고리즘
+- **Beautiful**: 파스텔 톤의 부드러운 디자인과 섬세한 애니메이션
+
+---
+
+## 라이센스 및 기여
+
+이 프로젝트는 개인 프로젝트로 시작되었으며, 지속적으로 업데이트되고 있습니다.
+
+---
+
+**Made with ❤️ by MealLog Team**
+
+*오늘 하루도 맛있게 드세요!*
