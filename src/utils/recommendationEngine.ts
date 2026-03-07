@@ -1,6 +1,15 @@
-import type { MealType } from '../types';
+import type { MealType, MenuItem } from '../types';
 import { menuDatabase } from '../data/menuDatabase';
-import { getMealRecords } from './storage';
+import { getMealRecords, getCustomMenus } from './storage';
+
+export const getAllMenuItems = (): MenuItem[] => {
+  const customItems = getCustomMenus().map((m) => ({
+    name: m.name,
+    category: m.category,
+    calories: m.calories ?? 0,
+  }));
+  return [...menuDatabase, ...customItems];
+};
 
 export const getCurrentMealType = (): MealType => {
   const hour = new Date().getHours();
@@ -73,22 +82,19 @@ export const getRecommendedMenus = (
   category?: string
 ): string[] => {
   const recentMenus = getRecentMeals(currentMealType);
+  const allMenus = getAllMenuItems();
 
   // 카테고리 필터 적용
-  let filteredMenus = menuDatabase;
-  if (category && category !== '전체') {
-    filteredMenus = menuDatabase.filter(item => item.category === category);
-  }
+  const filteredMenus = (category && category !== '전체')
+    ? allMenus.filter(item => item.category === category)
+    : allMenus;
 
-  // 최근 메뉴 제외
-  const availableMenus = filteredMenus
+  // 최근 메뉴 제외 후 랜덤 섞기
+  const shuffled = filteredMenus
     .map(item => item.name)
-    .filter(name => !recentMenus.includes(name));
+    .filter(name => !recentMenus.includes(name))
+    .sort(() => Math.random() - 0.5);
 
-  // 랜덤 섞기
-  const shuffled = [...availableMenus].sort(() => Math.random() - 0.5);
-
-  // 요청한 개수만큼 반환
   return shuffled.slice(0, count);
 };
 

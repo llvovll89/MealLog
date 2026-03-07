@@ -1,11 +1,17 @@
 export type MealType = 'breakfast' | 'lunch' | 'dinner';
 
+export type Gender = 'male' | 'female';
+export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+
 export interface UserProfile {
   height: number; // cm
   weight: number; // kg
   name?: string;
   calorieGoal?: number; // daily calorie goal in kcal
   targetWeight?: number; // target weight in kg
+  gender?: Gender;
+  age?: number;
+  activityLevel?: ActivityLevel;
 }
 
 export interface MealRecord {
@@ -29,6 +35,7 @@ export interface CustomMenu {
   id: string;
   name: string;
   category: string;
+  calories?: number;
 }
 
 export interface MenuItem {

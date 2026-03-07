@@ -12,9 +12,18 @@ export const saveProfile = (profile: UserProfile): void => {
   localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
 };
 
+const safeParse = <T>(data: string | null, fallback: T): T => {
+  if (!data) return fallback;
+  try {
+    return JSON.parse(data) as T;
+  } catch {
+    return fallback;
+  }
+};
+
 export const getProfile = (): UserProfile | null => {
   const data = localStorage.getItem(STORAGE_KEYS.PROFILE);
-  return data ? JSON.parse(data) : null;
+  return safeParse<UserProfile | null>(data, null);
 };
 
 // 식사 기록 관련
@@ -26,7 +35,7 @@ export const saveMealRecord = (record: MealRecord): void => {
 
 export const getMealRecords = (): MealRecord[] => {
   const data = localStorage.getItem(STORAGE_KEYS.MEAL_RECORDS);
-  return data ? JSON.parse(data) : [];
+  return safeParse<MealRecord[]>(data, []);
 };
 
 export const deleteMealRecord = (id: string): void => {
@@ -54,7 +63,7 @@ export const saveCustomMenu = (menu: CustomMenu): void => {
 
 export const getCustomMenus = (): CustomMenu[] => {
   const data = localStorage.getItem(STORAGE_KEYS.CUSTOM_MENUS);
-  return data ? JSON.parse(data) : [];
+  return safeParse<CustomMenu[]>(data, []);
 };
 
 export const deleteCustomMenu = (id: string): void => {
@@ -71,7 +80,7 @@ export const saveWeightRecord = (record: WeightRecord): void => {
 
 export const getWeightRecords = (): WeightRecord[] => {
   const data = localStorage.getItem(STORAGE_KEYS.WEIGHT_RECORDS);
-  return data ? JSON.parse(data) : [];
+  return safeParse<WeightRecord[]>(data, []);
 };
 
 export const deleteWeightRecord = (id: string): void => {
@@ -92,4 +101,21 @@ export const clearAllData = (): void => {
   localStorage.removeItem(STORAGE_KEYS.MEAL_RECORDS);
   localStorage.removeItem(STORAGE_KEYS.CUSTOM_MENUS);
   localStorage.removeItem(STORAGE_KEYS.WEIGHT_RECORDS);
+};
+
+// 데이터 내보내기
+export const exportAllData = () => ({
+  exportedAt: new Date().toISOString(),
+  profile: getProfile(),
+  mealRecords: getMealRecords(),
+  weightRecords: getWeightRecords(),
+  customMenus: getCustomMenus(),
+});
+
+// 데이터 가져오기
+export const importAllData = (data: ReturnType<typeof exportAllData>): void => {
+  if (data.profile) saveProfile(data.profile);
+  if (data.mealRecords) localStorage.setItem(STORAGE_KEYS.MEAL_RECORDS, JSON.stringify(data.mealRecords));
+  if (data.weightRecords) localStorage.setItem(STORAGE_KEYS.WEIGHT_RECORDS, JSON.stringify(data.weightRecords));
+  if (data.customMenus) localStorage.setItem(STORAGE_KEYS.CUSTOM_MENUS, JSON.stringify(data.customMenus));
 };

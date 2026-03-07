@@ -29,7 +29,7 @@ export const calculateBMI = (heightCm: number, weightKg: number): BMIResult => {
   } else if (roundedBMI >= 25 && roundedBMI < 30) {
     category = '비만 1단계';
     description = '비만 단계입니다. 식이요법과 운동을 통해 체중 관리가 필요합니다.';
-    color = 'text-orange-600';
+    color = 'text-amber-600';
   } else {
     category = '비만 2단계';
     description = '고도 비만 단계입니다. 전문가와 상담하여 체계적인 관리가 필요합니다.';
