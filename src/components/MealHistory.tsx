@@ -82,10 +82,10 @@ const MealHistory = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="glass border border-blue-200/50 rounded-3xl shadow-md p-6 backdrop-blur-xl">
+      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
         <div className="text-center mb-5">
           <span className="text-3xl animate-float inline-block">📚</span>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2 mb-1 tracking-tight">
+          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">
             식사 히스토리
           </h2>
         </div>
@@ -94,32 +94,32 @@ const MealHistory = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
         {!calorieGoal && onSettingsClick && (
           <button
             onClick={onSettingsClick}
-            className="w-full mb-4 flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 text-left hover:bg-blue-100 transition-all"
+            className="w-full mb-4 flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-xl px-4 py-3 text-left hover:bg-brand-100 transition-all"
           >
             <span className="text-xl flex-shrink-0">💡</span>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-blue-800">칼로리 목표를 설정하면 일별 섭취량 진행률이 표시돼요</p>
-              <p className="text-[10px] text-blue-600 mt-0.5">설정 탭에서 키·체중·목표 입력 →</p>
+              <p className="text-xs font-semibold text-gray-800">칼로리 목표를 설정하면 일별 섭취량 진행률이 표시돼요</p>
+              <p className="text-[10px] text-brand-500 mt-0.5">설정 탭에서 키·체중·목표 입력 →</p>
             </div>
           </button>
         )}
 
         {/* 날짜 필터 */}
         <div className="mb-4">
-          <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-            🔍 날짜로 필터링
+          <label className="block text-xs font-semibold text-apple-secondary mb-1.5">
+            날짜로 필터링
           </label>
           <div className="flex gap-2">
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex-1 px-4 py-2.5 border-2 border-blue-200/60 bg-white/80 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all text-sm backdrop-blur-sm"
+              className="flex-1 px-4 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm"
             />
             {selectedDate && (
               <button
                 onClick={() => setSelectedDate('')}
-                className="px-4 py-2.5 bg-blue-50 text-blue-700 rounded-xl hover:bg-blue-100 hover:shadow-soft transition-all font-medium text-sm transform hover:scale-105 duration-300 border border-blue-200"
+                className="px-4 py-2.5 bg-apple-bg text-apple-secondary rounded-lg hover:bg-gray-200 transition-all font-medium text-sm border border-apple-border-light"
               >
                 전체보기
               </button>
@@ -130,10 +130,10 @@ const MealHistory = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
         {/* 기록 목록 */}
         <div className="space-y-4">
           {Object.keys(recordsByDate).length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
+            <div className="text-center py-10 text-apple-secondary">
               <span className="text-4xl mb-3 block animate-float inline-block">📭</span>
               <p className="text-base font-medium">아직 기록된 식사가 없습니다</p>
-              <p className="text-xs mt-1 text-gray-400">기록 탭에서 식사를 기록해보세요!</p>
+              <p className="text-xs mt-1">기록 탭에서 식사를 기록해보세요!</p>
             </div>
           ) : (
             Object.entries(recordsByDate).map(([date, dateRecords]) => {
@@ -142,31 +142,28 @@ const MealHistory = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
               const isOverGoal = calorieGoal ? dailyCalories > calorieGoal : false;
 
               return (
-                <div key={date} className="bg-white/60 border border-blue-100 rounded-2xl p-4 backdrop-blur-sm shadow-soft">
+                <div key={date} className="bg-apple-bg border border-apple-border-light rounded-xl p-4">
                   <div className="mb-3">
-                    <h3 className="text-base font-bold text-gray-800">
+                    <h3 className="text-base font-bold text-apple-text">
                       {formatDateDisplay(date)}
                     </h3>
                     {calorieGoal ? (
                       <div className="mt-2">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-gray-500">칼로리 섭취량</span>
-                          <span className={`text-xs font-semibold ${isOverGoal ? 'text-red-500' : 'text-green-600'}`}>
+                          <span className="text-xs text-apple-secondary">칼로리 섭취량</span>
+                          <span className={`text-xs font-semibold ${isOverGoal ? 'text-red-500' : 'text-[#34c759]'}`}>
                             {dailyCalories}kcal / {calorieGoal}kcal
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className={`h-2 rounded-full transition-all ${isOverGoal
-                                ? 'bg-gradient-to-r from-red-500 to-pink-500'
-                                : 'bg-gradient-to-r from-green-500 to-emerald-500'
-                              }`}
+                            className={`h-2 rounded-full transition-all ${isOverGoal ? 'bg-red-500' : 'bg-[#34c759]'}`}
                             style={{ width: `${Math.min(caloriePercentage, 100)}%` }}
                           />
                         </div>
                       </div>
                     ) : dailyCalories > 0 ? (
-                      <p className="text-xs text-blue-700 mt-1 font-medium">총 {dailyCalories}kcal</p>
+                      <p className="text-xs text-brand-500 mt-1 font-medium">총 {dailyCalories}kcal</p>
                     ) : null}
                   </div>
 
@@ -178,7 +175,7 @@ const MealHistory = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
                       return (
                         <div
                           key={record.id}
-                          className="bg-white/90 border border-blue-100 rounded-xl p-3 hover:border-blue-300 hover:shadow-soft transition-all"
+                          className="bg-white border border-apple-border-light rounded-xl p-3 hover:border-brand-300 transition-all"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex items-start gap-2 flex-1">
@@ -190,18 +187,18 @@ const MealHistory = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
                                   <img
                                     src={displayImage}
                                     alt={record.menu}
-                                    className="w-full h-32 object-cover rounded-lg mb-2 border border-blue-100"
+                                    className="w-full h-32 object-cover rounded-lg mb-2 border border-apple-border-light"
                                   />
                                 )}
-                                <p className="font-semibold text-gray-800 text-sm">
+                                <p className="font-semibold text-apple-text text-sm">
                                   {record.menu}
                                   {calories != null && (
-                                    <span className="text-xs text-blue-600 ml-2 font-normal">
+                                    <span className="text-xs text-brand-500 ml-2 font-normal">
                                       {calories}kcal
                                     </span>
                                   )}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-apple-secondary">
                                   {getMealTypeLabel(record.mealType)}
                                 </p>
                               </div>
@@ -209,7 +206,7 @@ const MealHistory = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
 
                             {confirmDeleteId === record.id ? (
                               <div className="flex flex-col gap-1 flex-shrink-0">
-                                <p className="text-xs text-gray-600 font-medium text-center">삭제?</p>
+                                <p className="text-xs text-apple-secondary font-medium text-center">삭제?</p>
                                 <button
                                   onClick={() => handleDelete(record.id)}
                                   className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-all"
@@ -218,7 +215,7 @@ const MealHistory = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
                                 </button>
                                 <button
                                   onClick={() => setConfirmDeleteId(null)}
-                                  className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-all"
+                                  className="px-3 py-1.5 bg-gray-100 text-apple-secondary rounded-lg text-xs font-medium hover:bg-gray-200 transition-all"
                                 >
                                   취소
                                 </button>
@@ -226,7 +223,7 @@ const MealHistory = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
                             ) : (
                               <button
                                 onClick={() => setConfirmDeleteId(record.id)}
-                                className="px-3 py-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg hover:from-red-600 hover:to-pink-600 transition-all font-medium text-xs flex-shrink-0"
+                                className="px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all font-medium text-xs flex-shrink-0"
                               >
                                 🗑️
                               </button>

@@ -41,6 +41,8 @@ const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   very_active: 1.9,
 };
 
+const inputClass = "w-full px-4 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm";
+
 const ProfileSetting = () => {
   const toast = useToast();
 
@@ -86,7 +88,6 @@ const ProfileSetting = () => {
     const a = parseFloat(age);
     if (!h || !w || !a || !gender || h <= 0 || w <= 0 || a <= 0) return null;
 
-    // Harris-Benedict BMR
     const bmr =
       gender === 'male'
         ? 88.362 + 13.397 * w + 4.799 * h - 5.677 * a
@@ -94,10 +95,9 @@ const ProfileSetting = () => {
 
     let tdee = bmr * ACTIVITY_MULTIPLIERS[activityLevel];
 
-    // 목표 체중에 따른 조정 (±500kcal)
     if (tw && tw > 0) {
-      if (tw < w) tdee -= 500;       // 감량
-      else if (tw > w) tdee += 500;  // 증량
+      if (tw < w) tdee -= 500;
+      else if (tw > w) tdee += 500;
     }
 
     return Math.round(tdee);
@@ -253,73 +253,47 @@ const ProfileSetting = () => {
     return h > 0 && w > 0 ? calculateBMI(h, w) : null;
   })();
 
-  const inputClass = "w-full px-4 py-2.5 border-2 border-blue-200/60 bg-white/80 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all text-sm backdrop-blur-sm";
-
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-4">
       {/* ─── 프로필 ─── */}
-      <div className="glass border border-blue-200/50 rounded-3xl shadow-md p-6 backdrop-blur-xl">
+      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
         <div className="text-center mb-5">
           <span className="text-3xl animate-float inline-block">⚙️</span>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2 mb-1 tracking-tight">프로필 설정</h2>
+          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">프로필 설정</h2>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">👤 이름 (선택)</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="이름을 입력하세요"
-              className={inputClass}
-            />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">이름 (선택)</label>
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="이름을 입력하세요" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">📏 키 (cm)</label>
-            <input
-              type="number"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-              placeholder="170"
-              className={inputClass}
-            />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">키 (cm)</label>
+            <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="170" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">🏋️ 몸무게 (kg)</label>
-            <input
-              type="number"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              placeholder="65"
-              className={inputClass}
-            />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">몸무게 (kg)</label>
+            <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="65" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">🎯 목표 체중 (kg, 선택)</label>
-            <input
-              type="number"
-              value={targetWeight}
-              onChange={(e) => setTargetWeight(e.target.value)}
-              placeholder="60"
-              className={inputClass}
-            />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">목표 체중 (kg, 선택)</label>
+            <input type="number" value={targetWeight} onChange={(e) => setTargetWeight(e.target.value)} placeholder="60" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">👤 성별</label>
+            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">성별</label>
             <div className="flex gap-3">
               {([['male', '남성'], ['female', '여성']] as const).map(([val, label]) => (
                 <button
                   key={val}
                   type="button"
                   onClick={() => setGender(val)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${gender === val
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent'
-                      : 'bg-white/80 text-gray-600 border-blue-200/60 hover:border-blue-400'
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-all ${gender === val
+                      ? 'bg-brand-500 text-white border-brand-500'
+                      : 'bg-white text-apple-secondary border-apple-border hover:border-brand-400'
                     }`}
                 >
                   {label}
@@ -329,22 +303,16 @@ const ProfileSetting = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">🎂 나이 (세)</label>
-            <input
-              type="number"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              placeholder="25"
-              className={inputClass}
-            />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">나이 (세)</label>
+            <input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">🏃 활동량</label>
+            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">활동량</label>
             <select
               value={activityLevel}
               onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
-              className="w-full px-4 py-2.5 border-2 border-blue-200/60 bg-white/80 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all text-sm"
+              className="w-full px-4 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm"
             >
               {(Object.entries(ACTIVITY_LABELS) as [ActivityLevel, string][]).map(([val, label]) => (
                 <option key={val} value={val}>{label}</option>
@@ -353,11 +321,11 @@ const ProfileSetting = () => {
           </div>
 
           {bmiInfo && (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4">
+            <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">현재 BMI 지수</p>
-                  <p className="text-2xl font-bold text-gray-900">{bmiInfo.bmi}</p>
+                  <p className="text-xs text-apple-secondary mb-1">현재 BMI 지수</p>
+                  <p className="text-2xl font-bold text-apple-text">{bmiInfo.bmi}</p>
                   <p className={`text-sm font-semibold ${bmiInfo.color}`}>{bmiInfo.category}</p>
                 </div>
                 <div className="text-4xl">⚖️</div>
@@ -366,12 +334,12 @@ const ProfileSetting = () => {
           )}
 
           {suggestedCalories && (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4">
-              <p className="text-xs text-gray-500 mb-1">Harris-Benedict 자동 계산 권장 칼로리</p>
+            <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4">
+              <p className="text-xs text-apple-secondary mb-1">Harris-Benedict 자동 계산 권장 칼로리</p>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">{suggestedCalories.toLocaleString()} kcal</p>
-                  <p className="text-xs text-blue-600 mt-0.5">
+                  <p className="text-2xl font-bold text-apple-text">{suggestedCalories.toLocaleString()} kcal</p>
+                  <p className="text-xs text-brand-500 mt-0.5">
                     {parseFloat(targetWeight) > 0 && parseFloat(targetWeight) < parseFloat(weight)
                       ? '감량 목표 (-500 kcal 적용)'
                       : parseFloat(targetWeight) > 0 && parseFloat(targetWeight) > parseFloat(weight)
@@ -382,7 +350,7 @@ const ProfileSetting = () => {
                 <button
                   type="button"
                   onClick={() => setCalorieGoal(suggestedCalories.toString())}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105"
+                  className="px-4 py-2 bg-brand-500 text-white text-xs font-bold rounded-lg hover:bg-brand-600 transition-colors"
                 >
                   적용
                 </button>
@@ -391,41 +359,35 @@ const ProfileSetting = () => {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-              🔥 하루 칼로리 목표 (kcal, 선택)
+            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">
+              하루 칼로리 목표 (kcal, 선택)
             </label>
-            <input
-              type="number"
-              value={calorieGoal}
-              onChange={(e) => setCalorieGoal(e.target.value)}
-              placeholder="2000"
-              className={inputClass}
-            />
-            <p className="text-[10px] text-gray-400 mt-1 ml-1">
+            <input type="number" value={calorieGoal} onChange={(e) => setCalorieGoal(e.target.value)} placeholder="2000" className={inputClass} />
+            <p className="text-[10px] text-apple-secondary mt-1 ml-1">
               입력 시 히스토리에서 일일 칼로리 섭취량을 추적할 수 있어요
             </p>
           </div>
 
           <button
             onClick={handleSave}
-            className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-base rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-glow transition-all duration-300 transform hover:scale-105"
+            className="w-full py-3.5 bg-brand-500 text-white font-semibold text-base rounded-lg hover:bg-brand-600 active:bg-brand-700 transition-colors duration-150"
           >
-            💾 프로필 저장
+            프로필 저장
           </button>
         </div>
       </div>
 
       {/* ─── 알림 설정 ─── */}
-      <div className="glass border border-blue-200/50 rounded-3xl shadow-md p-6 backdrop-blur-xl">
+      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
         <div className="text-center mb-5">
           <span className="text-3xl animate-float inline-block">🔔</span>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2 mb-1 tracking-tight">식사 알림</h2>
-          <p className="text-xs text-gray-500">앱이 열려 있는 동안 식사 시간을 알려드려요</p>
+          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">식사 알림</h2>
+          <p className="text-xs text-apple-secondary">앱이 열려 있는 동안 식사 시간을 알려드려요</p>
         </div>
 
         {permStatus === 'unsupported' ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
-            <p className="text-sm text-gray-500">이 브라우저에서는 알림을 지원하지 않습니다.</p>
+          <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4 text-center">
+            <p className="text-sm text-apple-secondary">이 브라우저에서는 알림을 지원하지 않습니다.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -435,31 +397,27 @@ const ProfileSetting = () => {
               </div>
             )}
 
-            <div className="flex items-center justify-between bg-white/60 border border-blue-100 rounded-xl p-4">
+            <div className="flex items-center justify-between bg-apple-bg border border-apple-border-light rounded-xl p-4">
               <div>
-                <p className="text-sm font-semibold text-gray-800">식사 알림</p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-sm font-semibold text-apple-text">식사 알림</p>
+                <p className="text-xs text-apple-secondary mt-0.5">
                   {notifPrefs.enabled ? '알림이 켜져 있어요' : '알림이 꺼져 있어요'}
                 </p>
               </div>
               <button
                 onClick={handleToggleNotification}
                 disabled={permStatus === 'denied'}
-                className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-50 ${notifPrefs.enabled
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
-                  : 'bg-gray-200'
-                  }`}
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-50 ${notifPrefs.enabled ? 'bg-brand-500' : 'bg-gray-200'}`}
               >
                 <span
-                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ${notifPrefs.enabled ? 'translate-x-6' : 'translate-x-0'
-                    }`}
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ${notifPrefs.enabled ? 'translate-x-6' : 'translate-x-0'}`}
                 />
               </button>
             </div>
 
             {notifPrefs.enabled && permStatus === 'granted' && (
-              <div className="bg-white/60 border border-blue-100 rounded-xl p-4 space-y-3">
-                <p className="text-xs font-semibold text-gray-700 mb-2">⏰ 알림 시간 설정</p>
+              <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4 space-y-3">
+                <p className="text-xs font-semibold text-apple-secondary mb-2">알림 시간 설정</p>
                 {(
                   [
                     { key: 'breakfast', label: '☀️ 아침' },
@@ -468,12 +426,12 @@ const ProfileSetting = () => {
                   ] as const
                 ).map(({ key, label }) => (
                   <div key={key} className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">{label}</span>
+                    <span className="text-sm font-medium text-apple-text">{label}</span>
                     <input
                       type="time"
                       value={notifPrefs[key]}
                       onChange={(e) => handleTimeChange(key, e.target.value)}
-                      className="px-3 py-1.5 border-2 border-blue-200/60 bg-white/80 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all text-sm"
+                      className="px-3 py-1.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm"
                     />
                   </div>
                 ))}
@@ -483,7 +441,7 @@ const ProfileSetting = () => {
             <button
               onClick={handleTestNotification}
               disabled={permStatus === 'denied'}
-              className="w-full py-2.5 bg-white/70 border-2 border-blue-200/60 text-blue-700 font-semibold rounded-xl hover:bg-blue-50 hover:shadow-soft transition-all text-sm disabled:opacity-50"
+              className="w-full py-2.5 bg-apple-bg border border-apple-border-light text-apple-secondary font-semibold rounded-lg hover:bg-gray-200 transition-all text-sm disabled:opacity-50"
             >
               🔔 테스트 알림 보내기
             </button>
@@ -492,31 +450,25 @@ const ProfileSetting = () => {
       </div>
 
       {/* ─── 나만의 메뉴 ─── */}
-      <div className="glass border border-blue-200/50 rounded-3xl shadow-md p-6 backdrop-blur-xl">
+      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
         <div className="text-center mb-5">
           <span className="text-3xl animate-float inline-block">🍳</span>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2 mb-1 tracking-tight">나만의 메뉴</h2>
-          <p className="text-xs text-gray-500">추가한 메뉴는 추천·기록에 자동으로 포함됩니다</p>
+          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">나만의 메뉴</h2>
+          <p className="text-xs text-apple-secondary">추가한 메뉴는 추천·기록에 자동으로 포함됩니다</p>
         </div>
 
-        <div className="bg-white/60 border border-blue-100 rounded-2xl p-4 mb-4 space-y-3">
+        <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4 mb-4 space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">🍽️ 메뉴 이름</label>
-            <input
-              type="text"
-              value={menuName}
-              onChange={(e) => setMenuName(e.target.value)}
-              placeholder="예: 엄마표 된장찌개"
-              className={inputClass}
-            />
+            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">메뉴 이름</label>
+            <input type="text" value={menuName} onChange={(e) => setMenuName(e.target.value)} placeholder="예: 엄마표 된장찌개" className={inputClass} />
           </div>
           <div className="flex gap-2">
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">🏷️ 카테고리</label>
+              <label className="block text-xs font-semibold text-apple-secondary mb-1.5">카테고리</label>
               <select
                 value={menuCategory}
                 onChange={(e) => setMenuCategory(e.target.value)}
-                className="w-full px-3 py-2.5 border-2 border-blue-200/60 bg-white/80 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all text-sm"
+                className="w-full px-3 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm"
               >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>{c}</option>
@@ -524,26 +476,26 @@ const ProfileSetting = () => {
               </select>
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">🔥 칼로리 (선택)</label>
+              <label className="block text-xs font-semibold text-apple-secondary mb-1.5">칼로리 (선택)</label>
               <input
                 type="number"
                 value={menuCalories}
                 onChange={(e) => setMenuCalories(e.target.value)}
                 placeholder="450"
-                className="w-full px-3 py-2.5 border-2 border-blue-200/60 bg-white/80 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all text-sm"
+                className="w-full px-3 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm"
               />
             </div>
           </div>
           <button
             onClick={handleAddMenu}
-            className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-glow transition-all duration-300 transform hover:scale-105 text-sm"
+            className="w-full py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 transition-colors text-sm"
           >
             + 메뉴 추가
           </button>
         </div>
 
         {customMenus.length === 0 ? (
-          <div className="text-center py-6 text-gray-400">
+          <div className="text-center py-6 text-apple-secondary">
             <p className="text-sm">아직 추가된 메뉴가 없습니다</p>
           </div>
         ) : (
@@ -551,35 +503,26 @@ const ProfileSetting = () => {
             {customMenus.map((menu) => (
               <div
                 key={menu.id}
-                className="flex items-center justify-between bg-white/80 border border-blue-100 rounded-xl px-4 py-3 hover:border-blue-300 transition-all"
+                className="flex items-center justify-between bg-apple-bg border border-apple-border-light rounded-xl px-4 py-3 hover:border-brand-300 transition-all"
               >
                 <div>
-                  <p className="text-sm font-semibold text-gray-800">{menu.name}</p>
-                  <p className="text-xs text-blue-600">
+                  <p className="text-sm font-semibold text-apple-text">{menu.name}</p>
+                  <p className="text-xs text-brand-500">
                     {menu.category}
                     {menu.calories ? ` · ${menu.calories}kcal` : ''}
                   </p>
                 </div>
                 {confirmDeleteMenuId === menu.id ? (
                   <div className="flex gap-1">
-                    <button
-                      onClick={() => handleDeleteMenu(menu.id)}
-                      className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-all"
-                    >
+                    <button onClick={() => handleDeleteMenu(menu.id)} className="px-2 py-1 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-all">
                       삭제
                     </button>
-                    <button
-                      onClick={() => setConfirmDeleteMenuId(null)}
-                      className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-all"
-                    >
+                    <button onClick={() => setConfirmDeleteMenuId(null)} className="px-2 py-1 bg-gray-100 text-apple-secondary rounded-lg text-xs font-medium hover:bg-gray-200 transition-all">
                       취소
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => setConfirmDeleteMenuId(menu.id)}
-                    className="px-3 py-1.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg text-xs font-medium hover:from-red-600 hover:to-pink-600 transition-all"
-                  >
+                  <button onClick={() => setConfirmDeleteMenuId(menu.id)} className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-all">
                     🗑️
                   </button>
                 )}
@@ -590,28 +533,23 @@ const ProfileSetting = () => {
       </div>
 
       {/* ─── 데이터 관리 ─── */}
-      <div className="glass border border-blue-200/50 rounded-3xl shadow-md p-6 backdrop-blur-xl">
+      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
         <div className="text-center mb-5">
           <span className="text-3xl animate-float inline-block">🗂️</span>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2 mb-1 tracking-tight">데이터 관리</h2>
+          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">데이터 관리</h2>
         </div>
 
         <div className="space-y-3">
           <button
             onClick={handleExport}
-            className="w-full py-3 bg-gradient-to-r from-slate-600 to-slate-800 text-white font-semibold rounded-xl hover:from-slate-700 hover:to-slate-900 transition-all text-sm transform hover:scale-105 duration-300"
+            className="w-full py-3 bg-[#1d1d1f] text-white font-semibold rounded-lg hover:bg-[#2d2d2f] transition-colors text-sm"
           >
             📤 데이터 내보내기 (JSON)
           </button>
 
-          <label className="block w-full py-3 bg-white/70 text-gray-700 font-semibold rounded-xl hover:bg-blue-50 hover:text-blue-700 border-2 border-blue-200/60 transition-all text-sm text-center cursor-pointer transform hover:scale-105 duration-300">
+          <label className="block w-full py-3 bg-apple-bg text-apple-secondary font-semibold rounded-lg hover:bg-gray-200 border border-apple-border-light transition-all text-sm text-center cursor-pointer">
             📥 데이터 가져오기 (JSON)
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              className="hidden"
-            />
+            <input type="file" accept=".json" onChange={handleImport} className="hidden" />
           </label>
 
           {confirmClear ? (
@@ -621,16 +559,10 @@ const ProfileSetting = () => {
                 <span className="text-xs font-normal">프로필, 식사 기록, 메뉴가 모두 삭제됩니다.</span>
               </p>
               <div className="flex gap-2">
-                <button
-                  onClick={handleClearData}
-                  className="flex-1 py-2.5 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-all text-sm"
-                >
+                <button onClick={handleClearData} className="flex-1 py-2.5 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-all text-sm">
                   삭제 확인
                 </button>
-                <button
-                  onClick={() => setConfirmClear(false)}
-                  className="flex-1 py-2.5 bg-gray-100 text-gray-600 font-semibold rounded-xl hover:bg-gray-200 transition-all text-sm"
-                >
+                <button onClick={() => setConfirmClear(false)} className="flex-1 py-2.5 bg-gray-100 text-apple-secondary font-semibold rounded-lg hover:bg-gray-200 transition-all text-sm">
                   취소
                 </button>
               </div>
@@ -638,12 +570,12 @@ const ProfileSetting = () => {
           ) : (
             <button
               onClick={() => setConfirmClear(true)}
-              className="w-full py-2.5 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-xl hover:from-red-600 hover:to-pink-600 transition-all text-sm transform hover:scale-105 duration-300"
+              className="w-full py-2.5 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors text-sm"
             >
               🗑️ 모든 데이터 삭제
             </button>
           )}
-          <p className="text-xs text-gray-400 text-center">
+          <p className="text-xs text-apple-secondary text-center">
             프로필, 식사 기록, 커스텀 메뉴가 모두 삭제됩니다
           </p>
         </div>
@@ -651,8 +583,8 @@ const ProfileSetting = () => {
 
       {/* 앱 정보 */}
       <div className="text-center py-4">
-        <p className="text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text font-bold mb-1 text-sm">MealLog v1.3</p>
-        <p className="text-xs text-gray-400">맛있는 하루를 기록하세요 🍱</p>
+        <p className="text-apple-secondary font-semibold mb-1 text-sm">MealLog v1.3</p>
+        <p className="text-xs text-apple-secondary">맛있는 하루를 기록하세요 🍱</p>
       </div>
     </div>
   );
