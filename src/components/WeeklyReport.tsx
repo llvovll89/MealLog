@@ -105,32 +105,33 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
   const isCurrentWeek = weekOffset === 0;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-4">
+    <div className="max-w-[460px] mx-auto space-y-3 animate-fade-in">
       {/* 헤더 + 주간 네비 */}
-      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
-        <div className="text-center mb-4">
-          <span className="text-3xl animate-float inline-block">📋</span>
-          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">
-            주간 리포트
-          </h2>
+      <div className="bg-[#f5f2ec] rounded-[30px] border border-[#ddd4c3] shadow-none p-4">
+        <div className="text-left mb-4 px-1">
+          <p className="text-[11px] font-semibold text-[#6b6358] mb-1">주간 분석</p>
+          <div className="flex items-center justify-between">
+            <h2 className="text-[24px] font-black text-[#1f1d19] tracking-tight leading-tight">주간 리포트</h2>
+            <span className="text-3xl animate-float">📋</span>
+          </div>
         </div>
-        <div className="flex items-center justify-between bg-apple-bg border border-apple-border-light rounded-xl px-4 py-3">
+        <div className="flex items-center justify-between bg-white border border-[#d8d1c4] rounded-2xl px-4 py-3 shadow-none">
           <button
             onClick={() => setWeekOffset((o) => o - 1)}
-            className="w-9 h-9 flex items-center justify-center rounded-lg bg-white border border-apple-border-light hover:bg-gray-100 text-apple-secondary font-bold transition-all"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#d8d1c4] hover:bg-[#eee8dd] text-[#6b6358] font-bold transition-all"
           >
             ‹
           </button>
           <div className="text-center">
-            <p className="text-sm font-bold text-apple-text">{week.label}</p>
+            <p className="text-sm font-bold text-[#1f1d19]">{week.label}</p>
             {isCurrentWeek && (
-              <p className="text-xs text-brand-500 font-medium mt-0.5">이번 주</p>
+              <p className="text-xs text-[#1f3b5b] font-medium mt-0.5">이번 주</p>
             )}
           </div>
           <button
             onClick={() => setWeekOffset((o) => o + 1)}
             disabled={isCurrentWeek}
-            className="w-9 h-9 flex items-center justify-center rounded-lg bg-white border border-apple-border-light hover:bg-gray-100 text-apple-secondary font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-[#d8d1c4] hover:bg-[#eee8dd] text-[#6b6358] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
             ›
           </button>
@@ -141,19 +142,19 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
       {!calorieGoal && onSettingsClick && (
         <button
           onClick={onSettingsClick}
-          className="w-full flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-xl px-4 py-3 text-left hover:bg-brand-100 transition-all"
+          className="w-full flex items-center gap-3 bg-[#eee8dd] border border-[#d6cebe] rounded-2xl px-4 py-3 text-left hover:bg-[#e5efff] transition-all"
         >
           <span className="text-xl flex-shrink-0">💡</span>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-gray-800">프로필 설정 시 일별 칼로리 목표선과 감량/증량 분석이 표시돼요</p>
-            <p className="text-[10px] text-brand-500 mt-0.5">설정 탭에서 키·체중·목표 입력 →</p>
+            <p className="text-[10px] text-[#1f3b5b] mt-0.5">설정 탭에서 키·체중·목표 입력 →</p>
           </div>
         </button>
       )}
 
       {weekRecords.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-10 text-center">
-          <span className="text-4xl mb-3 block animate-float inline-block">📭</span>
+        <div className="bg-white rounded-3xl border border-[#d8d1c4] shadow-none p-10 text-center">
+          <span className="text-4xl mb-3 inline-block animate-float">📭</span>
           <p className="text-base font-medium text-apple-secondary">이 기간에 기록된 식사가 없습니다</p>
           <p className="text-xs mt-1 text-apple-secondary">식사를 기록하면 리포트가 생성됩니다</p>
         </div>
@@ -168,18 +169,18 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
             ].map(({ label, value, sub, emoji }) => (
               <div
                 key={label}
-                className="bg-white border border-apple-border-light rounded-xl shadow-soft p-4 text-center"
+                className="bg-white border border-[#d8d1c4] rounded-2xl shadow-none p-4 text-center"
               >
                 <span className="text-2xl block mb-1">{emoji}</span>
                 <p className="text-lg font-bold text-apple-text leading-tight">{value}</p>
                 <p className="text-[10px] text-apple-secondary mt-0.5">{sub}</p>
-                <p className="text-[10px] text-brand-500 font-semibold mt-1">{label}</p>
+                <p className="text-[10px] text-[#1f3b5b] font-semibold mt-1">{label}</p>
               </div>
             ))}
           </div>
 
           {/* 일별 칼로리 바 차트 */}
-          <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
+          <div className="bg-white rounded-3xl border border-[#d8d1c4] shadow-none p-6">
             <h3 className="text-sm font-bold text-apple-text mb-4">일별 칼로리 섭취량</h3>
             <div className="flex items-end gap-1.5 h-32">
               {days.map((date, i) => {
@@ -198,12 +199,12 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
                     <div className="w-full flex-1 flex items-end">
                       <div
                         className={`w-full rounded-t-md transition-all duration-500 ${
-                          cal === 0 ? 'bg-gray-100' : isOver ? 'bg-[#ff3b30]' : 'bg-brand-500'
-                        } ${isToday ? 'ring-2 ring-brand-500 ring-offset-1' : ''}`}
+                          cal === 0 ? 'bg-gray-100' : isOver ? 'bg-[#ff3b30]' : 'bg-[#1f3b5b]'
+                        } ${isToday ? 'ring-2 ring-[#1f3b5b] ring-offset-1' : ''}`}
                         style={{ height: cal > 0 ? `${heightPct}%` : '6px' }}
                       />
                     </div>
-                    <span className={`text-[10px] font-semibold ${isToday ? 'text-brand-500' : 'text-apple-secondary'}`}>
+                    <span className={`text-[10px] font-semibold ${isToday ? 'text-[#1f3b5b]' : 'text-apple-secondary'}`}>
                       {DAY_LABELS[i]}
                     </span>
                   </div>
@@ -218,7 +219,7 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
           </div>
 
           {/* 식사 유형 분포 */}
-          <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
+          <div className="bg-white rounded-3xl border border-[#d8d1c4] shadow-none p-6">
             <h3 className="text-sm font-bold text-apple-text mb-4">식사 유형별 횟수</h3>
             <div className="space-y-3">
               {(['breakfast', 'lunch', 'dinner'] as const).map((type) => {
@@ -231,7 +232,7 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
                     <span className="text-xs font-semibold text-apple-text w-8">{MEAL_TYPE_LABEL[type]}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
                       <div
-                        className="h-full bg-brand-500 rounded-full transition-all duration-500"
+                        className="h-full bg-[#1f3b5b] rounded-full transition-all duration-500"
                         style={{ width: count > 0 ? `${(count / max) * 100}%` : '0%' }}
                       />
                     </div>
@@ -244,7 +245,7 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
 
           {/* 자주 먹은 음식 */}
           {topFoods.length > 0 && (
-            <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
+            <div className="bg-white rounded-3xl border border-[#d8d1c4] shadow-none p-6">
               <h3 className="text-sm font-bold text-apple-text mb-4">자주 먹은 음식 TOP {topFoods.length}</h3>
               <div className="space-y-2">
                 {topFoods.map(([name, count], idx) => {
@@ -253,14 +254,14 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
                   return (
                     <div
                       key={name}
-                      className="flex items-center justify-between bg-apple-bg border border-apple-border-light rounded-xl px-4 py-3"
+                      className="flex items-center justify-between bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl px-4 py-3"
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{medals[idx] ?? `${idx + 1}.`}</span>
                         <div>
                           <p className="text-sm font-semibold text-apple-text">{name}</p>
                           {cal > 0 && (
-                            <p className="text-xs text-brand-500">{cal} kcal</p>
+                            <p className="text-xs text-[#1f3b5b]">{cal} kcal</p>
                           )}
                         </div>
                       </div>
@@ -274,7 +275,7 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
 
           {/* 카테고리 분포 */}
           {categoryDist.length > 0 && (
-            <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
+            <div className="bg-white rounded-3xl border border-[#d8d1c4] shadow-none p-6">
               <h3 className="text-sm font-bold text-apple-text mb-4">음식 카테고리 분포</h3>
               <div className="space-y-2.5">
                 {categoryDist.map(({ cat, count, pct }) => (
@@ -282,7 +283,7 @@ const WeeklyReport = ({ onSettingsClick }: { onSettingsClick?: () => void }) => 
                     <span className="text-xs font-semibold text-apple-text w-10">{cat}</span>
                     <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
                       <div
-                        className="h-full bg-brand-500 rounded-full transition-all duration-500"
+                        className="h-full bg-[#1f3b5b] rounded-full transition-all duration-500"
                         style={{ width: `${pct}%` }}
                       />
                     </div>

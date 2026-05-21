@@ -40,10 +40,6 @@ const NutritionDashboard = ({ onSettingsClick }: { onSettingsClick?: () => void 
     return sum + getMenuCalories(record.menu);
   }, 0);
 
-  const avgCalories = filteredRecords.length > 0
-    ? Math.round(totalCalories / (timePeriod === 'week' ? 7 : 30))
-    : 0;
-
   const categoryStats = filteredRecords.reduce((acc, record) => {
     const category = getMenuCategory(record.menu);
     const calories = getMenuCalories(record.menu);
@@ -82,51 +78,48 @@ const NutritionDashboard = ({ onSettingsClick }: { onSettingsClick?: () => void 
     dinner: '🌙',
   };
 
-  const dailyCalorieMap = filteredRecords.reduce((acc, record) => {
-    acc[record.date] = (acc[record.date] || 0) + getMenuCalories(record.menu);
-    return acc;
-  }, {} as Record<string, number>);
+  const categoryVariety = sortedCategories.length;
+  const dominantCategoryPct = totalCalories > 0
+    ? Math.round((sortedCategories[0]?.[1].calories || 0) / totalCalories * 100)
+    : 0;
 
-  const dailyCalorieData = Object.entries(dailyCalorieMap).sort(([a], [b]) => a.localeCompare(b));
-
-  const SVG_W = 320;
-  const SVG_H = 110;
-  const PAD = { top: 8, right: 10, bottom: 22, left: 10 };
-  const C_W = SVG_W - PAD.left - PAD.right;
-  const C_H = SVG_H - PAD.top - PAD.bottom;
-
-  const maxDailyCal = Math.max(...dailyCalorieData.map(([, v]) => v), calorieGoal || 0, 1);
-  const barCount = dailyCalorieData.length;
-  const barSpacing = barCount > 0 ? C_W / barCount : C_W;
-  const barW = Math.min(barSpacing - 3, 22);
+  const mealCounts = [
+    mealTypeStats.breakfast?.count || 0,
+    mealTypeStats.lunch?.count || 0,
+    mealTypeStats.dinner?.count || 0,
+  ];
+  const maxMealCount = Math.max(...mealCounts, 1);
+  const minMealCount = Math.min(...mealCounts);
+  const mealBalanceScore = Math.round((minMealCount / maxMealCount) * 100);
 
   const categoryColors = [
     '#0071e3', '#5ac8fa', '#34c759', '#ff9500', '#ff3b30', '#af52de'
   ];
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
-        <div className="text-center mb-5">
-          <span className="text-3xl animate-float inline-block">📊</span>
-          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">
-            영양 통계 대시보드
-          </h2>
-          <p className="text-xs text-apple-secondary">
-            식사 패턴과 영양 섭취를 분석해보세요
-          </p>
+    <div className="max-w-[460px] mx-auto animate-fade-in">
+      <div className="bg-[#f5f2ec] rounded-[30px] border border-[#ddd4c3] shadow-none p-4">
+        <div className="text-left mb-5 px-1">
+          <p className="text-[11px] font-semibold text-[#6b6358] mb-1">인사이트</p>
+          <div className="flex items-center justify-between">
+            <h2 className="text-[24px] font-black text-[#1f1d19] tracking-tight leading-tight">영양 통계</h2>
+            <span className="text-3xl animate-float">📊</span>
+          </div>
+          <p className="text-xs text-[#7a7266] mt-1">식사 패턴과 영양 섭취를 분석해보세요</p>
         </div>
+
+        <div className="bg-white rounded-3xl border border-[#d8d1c4] p-4 shadow-none">
 
         {/* 칼로리 목표 미설정 유도 배너 */}
         {!calorieGoal && onSettingsClick && (
           <button
             onClick={onSettingsClick}
-            className="w-full mb-4 flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-xl px-4 py-3 text-left hover:bg-brand-100 transition-all"
+            className="w-full mb-4 flex items-center gap-3 bg-[#eee8dd] border border-[#d6cebe] rounded-2xl px-4 py-3 text-left hover:bg-[#e5efff] transition-all"
           >
             <span className="text-xl flex-shrink-0">💡</span>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-gray-800">프로필을 설정하면 목표 대비 칼로리 차트가 활성화돼요</p>
-              <p className="text-[10px] text-brand-500 mt-0.5">설정 탭에서 키·체중·목표 입력 →</p>
+              <p className="text-xs font-semibold text-gray-800">목표 칼로리를 설정하면 구성 분석에 달성률 해석이 더 정확해져요</p>
+              <p className="text-[10px] text-[#1f3b5b] mt-0.5">설정 탭에서 키·체중·목표 입력</p>
             </div>
           </button>
         )}
@@ -136,18 +129,18 @@ const NutritionDashboard = ({ onSettingsClick }: { onSettingsClick?: () => void 
           <div className="flex gap-2">
             <button
               onClick={() => setTimePeriod('week')}
-              className={`flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${timePeriod === 'week'
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-apple-bg text-apple-secondary hover:bg-gray-200 border border-apple-border-light'
+                className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${timePeriod === 'week'
+                  ? 'bg-[#1f3b5b] text-white shadow-none'
+                  : 'bg-[#f8f5ef] text-[#6b6358] hover:bg-[#f1ebe0] border border-[#e3dccf]'
                 }`}
             >
               최근 7일
             </button>
             <button
               onClick={() => setTimePeriod('month')}
-              className={`flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${timePeriod === 'month'
-                  ? 'bg-brand-500 text-white'
-                  : 'bg-apple-bg text-apple-secondary hover:bg-gray-200 border border-apple-border-light'
+                className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${timePeriod === 'month'
+                  ? 'bg-[#1f3b5b] text-white shadow-none'
+                  : 'bg-[#f8f5ef] text-[#6b6358] hover:bg-[#f1ebe0] border border-[#e3dccf]'
                 }`}
             >
               최근 30일
@@ -157,41 +150,42 @@ const NutritionDashboard = ({ onSettingsClick }: { onSettingsClick?: () => void 
 
         {filteredRecords.length === 0 ? (
           <div className="text-center py-10 text-apple-secondary">
-            <span className="text-4xl mb-3 block animate-float inline-block">📭</span>
+            <span className="text-4xl mb-3 inline-block animate-float">📭</span>
             <p className="text-base font-medium">
               {timePeriod === 'week' ? '지난 7일' : '지난 30일'} 동안 기록된 식사가 없습니다
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {/* 전체 통계 */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="stat-card">
-                <p className="text-xs text-apple-secondary mb-1">총 칼로리</p>
-                <p className="text-2xl font-bold text-apple-text">{totalCalories.toLocaleString()}</p>
-                <p className="text-xs text-brand-500 font-medium">kcal</p>
+            {/* 핵심 구성 지표 */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-white border border-[#d8d1c4] rounded-2xl p-4">
+                <p className="text-xs text-apple-secondary mb-1">카테고리 다양성</p>
+                <p className="text-2xl font-bold text-apple-text">{categoryVariety}</p>
+                <p className="text-xs text-[#1f3b5b] font-medium">유형 사용</p>
               </div>
-              <div className="stat-card">
-                <p className="text-xs text-apple-secondary mb-1">평균 칼로리/일</p>
-                <p className="text-2xl font-bold text-apple-text">{avgCalories.toLocaleString()}</p>
-                <p className="text-xs text-brand-500 font-medium">kcal</p>
+              <div className="bg-white border border-[#d8d1c4] rounded-2xl p-4">
+                <p className="text-xs text-apple-secondary mb-1">최다 카테고리 비중</p>
+                <p className="text-2xl font-bold text-apple-text">{dominantCategoryPct}%</p>
+                <p className="text-xs text-[#1f3b5b] font-medium">편중도</p>
               </div>
-              <div className="stat-card">
-                <p className="text-xs text-apple-secondary mb-1">총 식사 횟수</p>
-                <p className="text-2xl font-bold text-apple-text">{filteredRecords.length}</p>
-                <p className="text-xs text-apple-secondary font-medium">회</p>
-              </div>
-              <div className="stat-card">
-                <p className="text-xs text-apple-secondary mb-1">평균 식사/일</p>
-                <p className="text-2xl font-bold text-apple-text">
-                  {(filteredRecords.length / (timePeriod === 'week' ? 7 : 30)).toFixed(1)}
-                </p>
-                <p className="text-xs text-apple-secondary font-medium">회</p>
+              <div className="bg-white border border-[#d8d1c4] rounded-2xl p-4">
+                <p className="text-xs text-apple-secondary mb-1">식사 균형 점수</p>
+                <p className="text-2xl font-bold text-apple-text">{mealBalanceScore}</p>
+                <p className="text-xs text-[#1f3b5b] font-medium">/ 100</p>
               </div>
             </div>
 
+            <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4">
+              <p className="text-sm text-apple-secondary leading-relaxed">
+                현재 {timePeriod === 'week' ? '최근 7일' : '최근 30일'} 식단은
+                <span className="text-apple-text font-semibold"> {sortedCategories[0]?.[0] || '기타'} 중심</span>으로,
+                전체의 <span className="text-apple-text font-semibold"> {dominantCategoryPct}%</span>를 차지합니다.
+              </p>
+            </div>
+
             {/* 카테고리별 통계 */}
-            <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4">
+            <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4">
               <h3 className="text-sm font-bold text-apple-text mb-3 flex items-center gap-2">
                 <span>🏷️</span>
                 <span>카테고리별 섭취량</span>
@@ -208,7 +202,7 @@ const NutritionDashboard = ({ onSettingsClick }: { onSettingsClick?: () => void 
                           <span className="font-semibold">{stats.count}회</span>
                           <span className="mx-1">·</span>
                           <span>{stats.calories}kcal</span>
-                          <span className="ml-1 text-brand-500">({percentage.toFixed(0)}%)</span>
+                          <span className="ml-1 text-[#1f3b5b]">({percentage.toFixed(0)}%)</span>
                         </div>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -223,69 +217,29 @@ const NutritionDashboard = ({ onSettingsClick }: { onSettingsClick?: () => void 
               </div>
             </div>
 
-            {/* 일별 칼로리 차트 */}
-            {dailyCalorieData.length > 0 && (
-              <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4">
-                <h3 className="text-sm font-bold text-apple-text mb-2 flex items-center gap-2">
-                  <span>📅</span>
-                  <span>일별 칼로리</span>
-                </h3>
-                <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full" style={{ height: SVG_H }}>
-                  {calorieGoal && (
-                    <line
-                      x1={PAD.left}
-                      y1={PAD.top + C_H * (1 - calorieGoal / maxDailyCal)}
-                      x2={PAD.left + C_W}
-                      y2={PAD.top + C_H * (1 - calorieGoal / maxDailyCal)}
-                      stroke="#34c759"
-                      strokeWidth={1.5}
-                      strokeDasharray="5 3"
-                    />
-                  )}
-                  <line x1={PAD.left} y1={PAD.top + C_H} x2={PAD.left + C_W} y2={PAD.top + C_H} stroke="#e5e5ea" strokeWidth={1} />
-
-                  {dailyCalorieData.map(([date, cal], i) => {
-                    const barH = (cal / maxDailyCal) * C_H;
-                    const x = PAD.left + i * barSpacing + (barSpacing - barW) / 2;
-                    const y = PAD.top + C_H - barH;
-                    const isOver = calorieGoal ? cal > calorieGoal : false;
-                    return (
-                      <g key={date}>
-                        <rect x={x} y={y} width={barW} height={barH} rx={3} fill={isOver ? '#ff3b30' : '#0071e3'} opacity={0.85} />
-                        {(i === 0 || i === dailyCalorieData.length - 1) && (
-                          <text x={x + barW / 2} y={SVG_H - 4} textAnchor="middle" fontSize={8} fill="#6e6e73">
-                            {date.slice(5)}
-                          </text>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
-                {calorieGoal && (
-                  <p className="text-[10px] text-[#34c759] text-center mt-1">-- 목표 칼로리 · 빨간 막대 = 초과</p>
-                )}
-              </div>
-            )}
-
             {/* 식사 시간대별 통계 */}
-            <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4">
+            <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4">
               <h3 className="text-sm font-bold text-apple-text mb-3 flex items-center gap-2">
                 <span>⏰</span>
                 <span>시간대별 식사 패턴</span>
               </h3>
               <div className="grid grid-cols-3 gap-2">
-                {Object.entries(mealTypeStats).map(([type, stats]) => (
-                  <div key={type} className="bg-white border border-apple-border-light rounded-xl p-3 text-center">
-                    <p className="text-xl mb-1">{mealTypeEmojis[type as keyof typeof mealTypeEmojis]}</p>
-                    <p className="text-xs text-apple-secondary mb-1">{mealTypeLabels[type as keyof typeof mealTypeLabels]}</p>
-                    <p className="text-lg font-bold text-apple-text">{stats.count}회</p>
-                    <p className="text-xs text-brand-500">{stats.calories}kcal</p>
-                  </div>
-                ))}
+                {(['breakfast', 'lunch', 'dinner'] as const).map((type) => {
+                  const stats = mealTypeStats[type] || { count: 0, calories: 0 };
+                  return (
+                    <div key={type} className="bg-white border border-[#d8d1c4] rounded-2xl p-3 text-center">
+                      <p className="text-xl mb-1">{mealTypeEmojis[type as keyof typeof mealTypeEmojis]}</p>
+                      <p className="text-xs text-apple-secondary mb-1">{mealTypeLabels[type as keyof typeof mealTypeLabels]}</p>
+                      <p className="text-lg font-bold text-apple-text">{stats.count}회</p>
+                      <p className="text-xs text-[#1f3b5b]">{stats.calories}kcal</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

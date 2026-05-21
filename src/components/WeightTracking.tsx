@@ -45,8 +45,8 @@ const WeightChart = ({
     targetWeight !== null && targetWeight >= yMin && targetWeight <= yMax;
 
   return (
-    <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4">
-      <h3 className="text-sm font-bold text-apple-text mb-2 flex items-center gap-2">
+    <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4">
+      <h3 className="text-sm font-bold text-[#1f1d19] mb-2 flex items-center gap-2">
         <span>📉</span>
         <span>체중 변화 그래프</span>
       </h3>
@@ -125,14 +125,14 @@ const WeightChart = ({
           {chartData[chartData.length - 1].date.slice(5)}
         </text>
       </svg>
-      <p className="text-[10px] text-apple-secondary text-center mt-1">
+      <p className="text-[10px] text-[#7a7266] text-center mt-1">
         최근 {chartData.length}회 기록 기준
       </p>
     </div>
   );
 };
 
-const inputClass = "w-full px-4 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm";
+const inputClass = "w-full px-4 py-2.5 border border-[#d8d1c4] bg-white rounded-xl focus:border-[#1f3b5b] focus:ring-2 focus:ring-[#1f3b5b]/15 focus:outline-none transition-all text-sm";
 
 const WeightTracking = () => {
   const toast = useToast();
@@ -212,15 +212,18 @@ const WeightTracking = () => {
     currentWeight && targetWeightNum ? currentWeight - targetWeightNum : null;
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
-        <div className="text-center mb-5">
-          <span className="text-3xl animate-float inline-block">📈</span>
-          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">
-            체중 추적
-          </h2>
-          <p className="text-xs text-apple-secondary">체중을 기록하고 변화를 추적하세요</p>
+    <div className="max-w-[460px] mx-auto animate-fade-in">
+      <div className="bg-[#f5f2ec] rounded-[30px] border border-[#ddd4c3] shadow-none p-4">
+        <div className="text-left mb-5 px-1">
+          <p className="text-[11px] font-semibold text-[#6b6358] mb-1">체중 관리</p>
+          <div className="flex items-center justify-between">
+            <h2 className="text-[24px] font-black text-[#1f1d19] tracking-tight leading-tight">체중 추적</h2>
+            <span className="text-3xl animate-float">📈</span>
+          </div>
+          <p className="text-xs text-[#7a7266] mt-1">체중을 기록하고 변화를 추적하세요</p>
         </div>
+
+        <div className="bg-white rounded-3xl border border-[#d8d1c4] p-4 shadow-none">
 
         {/* 현재 상태 */}
         {currentWeight && (
@@ -246,7 +249,7 @@ const WeightTracking = () => {
 
         {/* 체중 변화 */}
         {weightChange && (
-          <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4 mb-5">
+          <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4 mb-5">
             <h3 className="text-sm font-bold text-apple-text mb-2 flex items-center gap-2">
               <span>📊</span>
               <span>전체 변화량</span>
@@ -269,7 +272,7 @@ const WeightTracking = () => {
                   {weightChange.percentage.toFixed(2)}%
                 </p>
               </div>
-              <div className="text-xs text-brand-500 font-medium bg-brand-50 border border-brand-200 px-3 py-1.5 rounded-full">총 {records.length}회 기록</div>
+              <div className="text-xs text-[#1f3b5b] font-medium bg-[#eee8dd] border border-[#d6cebe] px-3 py-1.5 rounded-full">총 {records.length}회 기록</div>
             </div>
           </div>
         )}
@@ -282,7 +285,7 @@ const WeightTracking = () => {
         {/* 목표 체중 설정 */}
         <div className="mb-5">
           {!showTargetInput ? (
-            <div className="flex items-center justify-between bg-apple-bg border border-apple-border-light rounded-xl p-3">
+            <div className="flex items-center justify-between bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-3">
               <div>
                 <p className="text-xs text-apple-secondary">목표 체중</p>
                 <p className="font-semibold text-apple-text">
@@ -291,13 +294,13 @@ const WeightTracking = () => {
               </div>
               <button
                 onClick={() => setShowTargetInput(true)}
-                className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-[#1f3b5b] text-white rounded-xl hover:bg-[#17324f] transition-colors text-sm font-medium"
               >
                 {targetWeightNum ? '변경' : '설정'}
               </button>
             </div>
           ) : (
-            <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4">
+            <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4">
               <label className="block text-xs font-semibold text-apple-secondary mb-2">
                 목표 체중 (kg)
               </label>
@@ -307,17 +310,17 @@ const WeightTracking = () => {
                   value={targetWeight}
                   onChange={(e) => setTargetWeight(e.target.value)}
                   placeholder="65"
-                  className="flex-1 px-4 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm"
+                  className="flex-1 px-4 py-2.5 border border-[#d8d1c4] bg-white rounded-xl focus:border-[#1f3b5b] focus:ring-2 focus:ring-[#1f3b5b]/15 focus:outline-none transition-all text-sm"
                 />
                 <button
                   onClick={handleSaveTarget}
-                  className="px-4 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors text-sm font-medium"
+                  className="px-4 py-2.5 bg-[#1f3b5b] text-white rounded-xl hover:bg-[#17324f] transition-colors text-sm font-medium"
                 >
                   저장
                 </button>
                 <button
                   onClick={() => setShowTargetInput(false)}
-                  className="px-4 py-2.5 bg-apple-bg text-apple-secondary rounded-lg hover:bg-gray-200 transition-all text-sm font-medium border border-apple-border-light"
+                  className="px-4 py-2.5 bg-[#f8f5ef] text-[#6b6358] rounded-xl hover:bg-[#f1ebe0] transition-all text-sm font-medium border border-[#e3dccf]"
                 >
                   취소
                 </button>
@@ -327,7 +330,7 @@ const WeightTracking = () => {
         </div>
 
         {/* 체중 기록하기 */}
-        <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4 mb-5">
+        <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4 mb-5">
           <h3 className="text-sm font-bold text-apple-text mb-3">체중 기록하기</h3>
           <div className="space-y-3">
             <div>
@@ -357,7 +360,7 @@ const WeightTracking = () => {
             </div>
             <button
               onClick={handleSave}
-              className="w-full py-3 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 active:bg-brand-700 transition-colors"
+              className="w-full py-3 bg-[#1f3b5b] text-white font-semibold rounded-xl hover:bg-[#17324f] active:bg-[#13263c] transition-colors"
             >
               기록하기
             </button>
@@ -373,7 +376,7 @@ const WeightTracking = () => {
 
           {records.length === 0 ? (
             <div className="text-center py-10 text-apple-secondary">
-              <span className="text-4xl mb-3 block animate-float inline-block">📭</span>
+              <span className="text-4xl mb-3 inline-block animate-float">📭</span>
               <p className="text-base font-medium">기록된 체중이 없습니다</p>
               <p className="text-xs mt-1">위에서 체중을 기록해보세요!</p>
             </div>
@@ -386,7 +389,7 @@ const WeightTracking = () => {
                 return (
                   <div
                     key={record.id}
-                    className="bg-apple-bg border border-apple-border-light rounded-xl p-3 hover:border-brand-300 transition-all"
+                    className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-3 hover:border-[#8fb5f8] transition-all"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
@@ -441,6 +444,7 @@ const WeightTracking = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

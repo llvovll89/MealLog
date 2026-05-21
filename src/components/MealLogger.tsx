@@ -5,7 +5,7 @@ import { formatDate, getMealTypeLabel, getAllMenuItems } from '../utils/recommen
 import { saveImage } from '../utils/imageStorage';
 import { useToast } from '../context/ToastContext';
 
-const inputClass = "w-full px-4 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm";
+const inputClass = "w-full px-4 py-2.5 border border-[#d8dde4] bg-white rounded-xl focus:border-[#0099ff] focus:ring-2 focus:ring-[#0099ff]/15 focus:outline-none transition-all text-sm";
 
 const MealLogger = () => {
   const toast = useToast();
@@ -89,19 +89,22 @@ const MealLogger = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
-        <div className="text-center mb-5">
-          <span className="text-3xl animate-float inline-block">📝</span>
-          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">
-            식사 기록하기
-          </h2>
+    <div className="max-w-[460px] mx-auto animate-fade-in">
+      <div className="bg-white rounded-2xl border border-[#d8dde4] shadow-[0_6px_20px_rgba(15,23,42,0.06)] p-4">
+        <div className="text-left mb-5 px-1">
+          <p className="text-[11px] font-semibold text-[#666d78] mb-1">식사 로그</p>
+          <div className="flex items-center justify-between">
+            <h2 className="text-[24px] font-black text-[#1f1d19] tracking-tight leading-tight">
+              식사 기록하기
+            </h2>
+            <span className="text-3xl animate-float">📝</span>
+          </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 bg-white rounded-xl border border-[#d8dde4] p-4 shadow-[0_2px_8px_rgba(15,23,42,0.05)]">
           {/* 날짜 선택 */}
           <div>
-            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">
+            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">
               날짜
             </label>
             <input
@@ -114,7 +117,7 @@ const MealLogger = () => {
 
           {/* 식사 시간대 선택 */}
           <div>
-            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">
+            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">
               식사 시간
             </label>
             <div className="flex gap-2">
@@ -122,9 +125,9 @@ const MealLogger = () => {
                 <button
                   key={type}
                   onClick={() => setMealType(type)}
-                  className={`flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${mealType === type
-                      ? 'bg-brand-500 text-white'
-                      : 'bg-apple-bg text-apple-secondary hover:bg-gray-200 border border-apple-border-light'
+                    className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${mealType === type
+                      ? 'bg-[#0099ff] text-white shadow-none'
+                      : 'bg-[#f3f5f8] text-[#666d78] hover:bg-[#ebeef3] border border-[#d8dde4]'
                     }`}
                 >
                   {getMealTypeLabel(type)}
@@ -135,7 +138,7 @@ const MealLogger = () => {
 
           {/* 카테고리 선택 */}
           <div>
-            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">
+            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">
               카테고리
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -143,9 +146,9 @@ const MealLogger = () => {
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  className={`px-3 py-1.5 rounded-full font-medium text-xs transition-all duration-200 ${selectedCategory === category
-                      ? 'bg-brand-500 text-white'
-                      : 'bg-apple-bg text-apple-secondary hover:bg-gray-200 border border-apple-border-light'
+                    className={`px-3 py-1.5 rounded-full font-medium text-xs transition-all duration-200 ${selectedCategory === category
+                      ? 'bg-[#0099ff] text-white shadow-none'
+                      : 'bg-[#f3f5f8] text-[#666d78] hover:bg-[#ebeef3] border border-[#d8dde4]'
                     }`}
                 >
                   {category}
@@ -156,22 +159,22 @@ const MealLogger = () => {
 
           {/* 메뉴 선택 */}
           <div>
-            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">
+            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">
               메뉴 선택
             </label>
-            <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto p-2 bg-apple-bg rounded-lg border border-apple-border-light">
+            <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto p-2 bg-[#f3f5f8] rounded-xl border border-[#d8dde4]">
               {filteredMenus.map((menu) => (
                 <button
                   key={menu.name}
                   onClick={() => { setSelectedMenu(menu.name); setCustomMenu(''); }}
-                  className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${selectedMenu === menu.name
-                      ? 'bg-brand-500 text-white'
-                      : 'bg-white text-apple-text hover:bg-brand-50 border border-apple-border-light'
+                    className={`px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left ${selectedMenu === menu.name
+                      ? 'bg-[#0099ff] text-white shadow-none'
+                      : 'bg-white text-[#1f1d19] hover:bg-[#ebeef3] border border-[#d8dde4]'
                     }`}
                 >
                   <div className="truncate">{menu.name}</div>
                   {menu.calories > 0 && (
-                    <div className={`text-xs mt-0.5 ${selectedMenu === menu.name ? 'text-white/80' : 'text-apple-secondary'}`}>
+                    <div className={`text-xs mt-0.5 ${selectedMenu === menu.name ? 'text-white/80' : 'text-[#666d78]'}`}>
                       {menu.calories}kcal
                     </div>
                   )}
@@ -182,7 +185,7 @@ const MealLogger = () => {
 
           {/* 직접 입력 */}
           <div>
-            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">
+            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">
               또는 직접 입력
             </label>
             <input
@@ -199,7 +202,7 @@ const MealLogger = () => {
 
           {/* 사진 업로드 */}
           <div>
-            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">
+            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">
               식사 사진 (선택, 최대 5MB)
             </label>
             {imagePreview ? (
@@ -207,7 +210,7 @@ const MealLogger = () => {
                 <img
                   src={imagePreview}
                   alt="식사 미리보기"
-                  className="w-full h-48 object-cover rounded-lg border border-apple-border-light"
+                  className="w-full h-48 object-cover rounded-xl border border-[#d8dde4]"
                 />
                 <button
                   onClick={handleRemoveImage}
@@ -218,9 +221,9 @@ const MealLogger = () => {
               </div>
             ) : (
               <div className="flex gap-2">
-                <label className="flex-1 flex flex-col items-center gap-1.5 px-3 py-5 border-2 border-dashed border-apple-border bg-apple-bg rounded-lg hover:border-brand-500 hover:bg-brand-50 transition-all cursor-pointer text-center">
+                <label className="flex-1 flex flex-col items-center gap-1.5 px-3 py-5 border-2 border-dashed border-[#d8dde4] bg-[#f3f5f8] rounded-xl hover:border-[#0099ff] hover:bg-[#eaf5ff] transition-all cursor-pointer text-center">
                   <span className="text-2xl">📷</span>
-                  <span className="text-xs text-apple-secondary font-semibold">카메라</span>
+                  <span className="text-xs text-[#666d78] font-semibold">카메라</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -229,9 +232,9 @@ const MealLogger = () => {
                     className="hidden"
                   />
                 </label>
-                <label className="flex-1 flex flex-col items-center gap-1.5 px-3 py-5 border-2 border-dashed border-apple-border bg-apple-bg rounded-lg hover:border-brand-500 hover:bg-brand-50 transition-all cursor-pointer text-center">
+                <label className="flex-1 flex flex-col items-center gap-1.5 px-3 py-5 border-2 border-dashed border-[#d8dde4] bg-[#f3f5f8] rounded-xl hover:border-[#0099ff] hover:bg-[#eaf5ff] transition-all cursor-pointer text-center">
                   <span className="text-2xl">🖼️</span>
-                  <span className="text-xs text-apple-secondary font-semibold">갤러리</span>
+                  <span className="text-xs text-[#666d78] font-semibold">갤러리</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -246,7 +249,7 @@ const MealLogger = () => {
           {/* 저장 버튼 */}
           <button
             onClick={handleSave}
-            className="w-full py-3.5 bg-brand-500 text-white font-semibold text-base rounded-lg hover:bg-brand-600 active:bg-brand-700 transition-colors duration-150"
+            className="w-full py-3.5 bg-[#0099ff] text-white font-semibold text-base rounded-2xl hover:bg-[#008ae6] active:bg-[#007acc] transition-colors duration-150 shadow-none"
           >
             기록하기
           </button>

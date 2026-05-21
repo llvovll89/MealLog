@@ -3,7 +3,21 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --app-bg: #ffffff;
+  --app-surface: #ffffff;
+  --app-primary: #1f1d19;
+  --app-primary-strong: #161411;
+  --app-text: #1f1d19;
+  --app-muted: #666d78;
+  --app-border: #d8dde4;
+}
+
 @layer utilities {
+  .bg-app-bg {
+    background-color: var(--app-bg);
+  }
+
   .glass {
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(20px);
@@ -23,7 +37,7 @@
   }
 
   .btn-primary {
-    background: #0071e3;
+    background: #1f3b5b;
     color: white;
     font-weight: 600;
     border-radius: 0.5rem;
@@ -31,11 +45,11 @@
   }
 
   .btn-primary:hover {
-    background: #0062c3;
+    background: #17324f;
   }
 
   .btn-primary:active {
-    background: #004f9e;
+    background: #13263c;
   }
 
   .stat-card {
@@ -50,8 +64,14 @@ body {
   margin: 0;
   font-family: "Pretendard", sans-serif;
   min-height: 100vh;
-  background: #f5f5f7;
+  color: var(--app-text);
+  background-color: var(--app-bg);
+  background-image: none;
   background-attachment: scroll;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 * {

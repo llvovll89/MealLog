@@ -42,7 +42,7 @@ const BMICalculator = () => {
     : null;
 
   const inputClass =
-    'w-full px-4 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm';
+    'w-full px-4 py-2.5 border border-[#d8d1c4] bg-white rounded-xl focus:border-[#1f3b5b] focus:ring-2 focus:ring-[#1f3b5b]/15 focus:outline-none transition-all text-sm';
 
   const categoryColorMap: Record<string, { bg: string; text: string }> = {
     저체중:    { bg: 'bg-blue-100',   text: 'text-blue-700'   },
@@ -55,30 +55,33 @@ const BMICalculator = () => {
   const currentColors = result ? (categoryColorMap[result.category] ?? { bg: 'bg-gray-100', text: 'text-gray-700' }) : null;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-4">
+    <div className="max-w-[460px] mx-auto space-y-3 animate-fade-in">
 
       {/* ─── 입력 카드 ─── */}
-      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
-        <div className="text-center mb-5">
-          <span className="text-3xl animate-float inline-block">⚖️</span>
-          <h2 className="text-xl font-bold text-apple-text mt-2 mb-1 tracking-tight">BMI 계산기</h2>
-          <p className="text-xs text-apple-secondary">체질량지수로 나의 체중 상태를 확인해보세요</p>
+      <div className="bg-[#f5f2ec] rounded-[30px] border border-[#ddd4c3] shadow-none p-4">
+        <div className="text-left mb-5 px-1">
+          <p className="text-[11px] font-semibold text-[#6b6358] mb-1">건강 지표</p>
+          <div className="flex items-center justify-between">
+            <h2 className="text-[24px] font-black text-[#1f1d19] tracking-tight leading-tight">BMI 계산기</h2>
+            <span className="text-3xl animate-float">⚖️</span>
+          </div>
+          <p className="text-xs text-[#7a7266] mt-1">체질량지수로 나의 체중 상태를 확인해보세요</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 bg-white rounded-3xl border border-[#d8d1c4] p-4 shadow-none">
           {/* 성별 선택 */}
           <div>
-            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">성별</label>
+            <label className="block text-xs font-semibold text-[#6b6358] mb-1.5">성별</label>
             <div className="flex gap-3">
               {([['male', '👨 남성'], ['female', '👩 여성']] as const).map(([val, label]) => (
                 <button
                   key={val}
                   type="button"
                   onClick={() => setGender(val)}
-                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-all ${
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
                     gender === val
-                      ? 'bg-brand-500 text-white border-brand-500'
-                      : 'bg-white text-apple-secondary border-apple-border hover:border-brand-400'
+                      ? 'bg-[#1f3b5b] text-white border-[#1f3b5b] shadow-none'
+                      : 'bg-white text-[#6b6358] border-[#d8d1c4] hover:border-[#8fb5f8]'
                   }`}
                 >
                   {label}
@@ -90,7 +93,7 @@ const BMICalculator = () => {
           {/* 키 / 몸무게 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-apple-secondary mb-1.5">키 (cm)</label>
+              <label className="block text-xs font-semibold text-[#6b6358] mb-1.5">키 (cm)</label>
               <input
                 type="number"
                 value={height}
@@ -100,7 +103,7 @@ const BMICalculator = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-apple-secondary mb-1.5">몸무게 (kg)</label>
+              <label className="block text-xs font-semibold text-[#6b6358] mb-1.5">몸무게 (kg)</label>
               <input
                 type="number"
                 value={weight}
@@ -113,7 +116,7 @@ const BMICalculator = () => {
 
           <button
             onClick={handleCalculate}
-            className="w-full py-3.5 bg-brand-500 text-white font-semibold text-base rounded-lg hover:bg-brand-600 active:bg-brand-700 transition-colors duration-150"
+            className="w-full py-3.5 bg-[#1f3b5b] text-white font-semibold text-base rounded-2xl hover:bg-[#17324f] active:bg-[#13263c] transition-colors duration-150 shadow-none"
           >
             BMI 계산하기
           </button>
@@ -122,7 +125,7 @@ const BMICalculator = () => {
 
       {/* ─── 결과 카드 ─── */}
       {result && currentColors && (
-        <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
+        <div className="bg-white rounded-3xl border border-[#d8d1c4] shadow-none p-6">
           <div className="text-center mb-5">
             <p className="text-xs text-apple-secondary mb-1">나의 BMI 지수</p>
             <p className="text-5xl font-bold text-apple-text mb-3">{result.bmi}</p>
@@ -151,7 +154,7 @@ const BMICalculator = () => {
             </div>
           )}
 
-          <div className="bg-apple-bg border border-apple-border-light rounded-xl p-3">
+          <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-3">
             <p className="text-sm text-apple-secondary leading-relaxed">{result.description}</p>
           </div>
 
@@ -171,10 +174,10 @@ const BMICalculator = () => {
       )}
 
       {/* ─── 판정기준 표 ─── */}
-      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
+      <div className="bg-white rounded-3xl border border-[#d8d1c4] shadow-none p-6">
         <h3 className="text-sm font-bold text-apple-text mb-3">📊 BMI 판정기준</h3>
         <p className="text-[11px] text-apple-secondary mb-3">대한비만학회 기준 (아시아·한국인 기준 적용)</p>
-        <div className="overflow-hidden rounded-xl border border-apple-border-light">
+        <div className="overflow-hidden rounded-2xl border border-[#e3dccf]">
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-apple-bg">
@@ -206,20 +209,20 @@ const BMICalculator = () => {
       </div>
 
       {/* ─── 계산법 ─── */}
-      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
+      <div className="bg-white rounded-3xl border border-[#d8d1c4] shadow-none p-6">
         <h3 className="text-sm font-bold text-apple-text mb-3">📐 BMI 계산법</h3>
 
-        <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4 text-center mb-4">
+        <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4 text-center mb-4">
           <p className="text-base font-bold text-apple-text">BMI = 체중(kg) ÷ 키(m)²</p>
           {height && weight && parseFloat(height) > 0 && parseFloat(weight) > 0 && (
-            <p className="text-xs text-brand-500 mt-2">
+            <p className="text-xs text-[#1f3b5b] mt-2">
               내 계산: {weight}kg ÷ ({(parseFloat(height) / 100).toFixed(2)}m)² ={' '}
               <span className="font-bold">{result?.bmi ?? '—'}</span>
             </p>
           )}
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-apple-border-light">
+        <div className="overflow-hidden rounded-2xl border border-[#e3dccf]">
           <table className="w-full text-xs">
             <thead>
               <tr className="bg-apple-bg">
@@ -246,7 +249,7 @@ const BMICalculator = () => {
       </div>
 
       {/* ─── 주의사항 ─── */}
-      <div className="bg-white rounded-2xl border border-apple-border-light shadow-soft p-6">
+      <div className="bg-white rounded-3xl border border-[#d8d1c4] shadow-none p-6">
         <h3 className="text-sm font-bold text-apple-text mb-1">⚠️ BMI 활용 시 주의사항</h3>
         <p className="text-xs text-apple-secondary mb-4">
           BMI는 체중과 키만으로 계산하는 <span className="font-semibold">대략적인 지표</span>예요. 아래 경우엔 실제 건강 상태와 다를 수 있습니다.

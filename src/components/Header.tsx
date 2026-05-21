@@ -1,16 +1,26 @@
 const Header = () => {
+  const todayText = new Date().toLocaleDateString('ko-KR', {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'short',
+  });
+
   return (
-    <header className="glass-warm border-b border-apple-border-light sm:py-3 py-2.5 sm:px-4 px-3 sticky top-0 z-50">
-      <div className="max-w-4xl mx-auto text-center animate-slide-down">
-        <div className="flex items-center justify-center gap-2">
-          <span className="sm:text-3xl text-2xl animate-float inline-block">🍱</span>
-          <h1 className="sm:text-2xl text-xl font-bold text-apple-text tracking-tight">
-            MealLog
-          </h1>
+    <header className="fixed top-0 left-0 right-0 z-50 px-3 pt-3">
+      <div className="max-w-[460px] mx-auto rounded-2xl bg-white border border-[#d6cebe] shadow-none overflow-hidden">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="min-w-0">
+            <h1 className="text-[18px] font-extrabold text-[#1f1d19] tracking-tight leading-tight">
+              MealLog
+            </h1>
+            <p className="text-[11px] text-[#7a7266] truncate mt-0.5">
+              {todayText} · 개인 식단 로그
+            </p>
+          </div>
+          <span className="text-[10px] font-semibold text-[#1f1d19] bg-[#f5f2ec] border border-[#dbd2c2] rounded-md px-2 py-1 whitespace-nowrap">
+            meallog
+          </span>
         </div>
-        <p className="text-apple-secondary sm:text-xs text-[10px] font-medium mt-0.5 hidden sm:block">
-          오늘은 뭐 먹지? 맛있는 하루를 기록해보세요
-        </p>
       </div>
     </header>
   );
