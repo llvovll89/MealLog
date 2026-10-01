@@ -1,18 +1,12 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { useState, useCallback, type ReactNode } from 'react';
+import { ToastContext, type ToastType } from './toast';
 
-type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface ToastItem {
   id: string;
   type: ToastType;
   message: string;
 }
-
-interface ToastContextValue {
-  addToast: (type: ToastType, message: string) => void;
-}
-
-const ToastContext = createContext<ToastContextValue | null>(null);
 
 const ICONS: Record<ToastType, string> = {
   success: '✅',
@@ -37,16 +31,18 @@ const ToastContainer = ({
 }) => {
   if (toasts.length === 0) return null;
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
+    <div role="status" aria-live="polite" className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
       {toasts.map((t) => (
-        <div
+        <button
+          type="button"
+          aria-label="알림 닫기"
           key={t.id}
           className={`${BG[t.type]} text-white px-4 py-3 rounded-xl shadow-md flex items-center gap-2 text-sm font-medium animate-slide-up pointer-events-auto max-w-xs cursor-pointer`}
           onClick={() => onDismiss(t.id)}
         >
           <span>{ICONS[t.type]}</span>
-          <span className="flex-1">{t.message}</span>
-        </div>
+          <span className="flex-1 text-left">{t.message}</span>
+        </button>
       ))}
     </div>
   );
@@ -73,15 +69,4 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
     </ToastContext.Provider>
   );
-};
-
-export const useToast = () => {
-  const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used within ToastProvider');
-  return {
-    success: (msg: string) => ctx.addToast('success', msg),
-    error: (msg: string) => ctx.addToast('error', msg),
-    info: (msg: string) => ctx.addToast('info', msg),
-    warning: (msg: string) => ctx.addToast('warning', msg),
-  };
 };

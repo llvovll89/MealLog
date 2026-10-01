@@ -1,17 +1,24 @@
-import { useState, useEffect, useMemo } from 'react';
-import type { CustomMenu, Gender, ActivityLevel } from '../types';
+import { useState, useMemo, useRef } from 'react';
+import type { Gender, ActivityLevel, MenuPreference } from '../types';
+import MenuPreferencePicker from './MenuPreferencePicker';
+import MenuIngredientEditor from './MenuIngredientEditor';
+import type { MenuIngredientInfo } from '../types';
+import { preferenceLabel } from '../data/menuPreferences';
 import {
   getProfile,
   saveProfile,
-  clearAllData,
   getCustomMenus,
   saveCustomMenu,
   deleteCustomMenu,
-  exportAllData,
-  importAllData,
+  updateCustomMenuPreferences,
+  updateCustomMenuIngredients,
+  storageErrorMessage,
 } from '../utils/storage';
+import { clearAllData, exportAllData, importAllData, validateBackup, type BackupData, type ImportMode } from '../utils/backup';
+import { formatDate } from '../utils/dates';
+import { useStorageRevision } from '../hooks/useStorageRevision';
 import { calculateBMI } from '../utils/bmiCalculator';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../hooks/useToast';
 import {
   type NotificationPrefs,
   getNotificationPrefs,
@@ -41,45 +48,45 @@ const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   very_active: 1.9,
 };
 
-const inputClass = "w-full px-4 py-2.5 border border-[#d8dde4] bg-white rounded-xl focus:border-[#0099ff] focus:ring-2 focus:ring-[#0099ff]/15 focus:outline-none transition-all text-sm";
+const inputClass = "w-full px-4 py-2.5 border border-[#d8e6f0] bg-white rounded-xl focus:border-[#3974a6] focus:ring-2 focus:ring-[#3974a6]/15 focus:outline-none transition-all text-sm";
 
 const ProfileSetting = () => {
   const toast = useToast();
+  useStorageRevision();
+  const [initialProfile] = useState(getProfile);
+  const [dataBusy, setDataBusy] = useState(false);
+  const dataBusyRef = useRef(false);
+  const [pendingBackup, setPendingBackup] = useState<BackupData | null>(null);
 
-  const [name, setName] = useState('');
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [targetWeight, setTargetWeight] = useState('');
-  const [gender, setGender] = useState<Gender | ''>('');
-  const [age, setAge] = useState('');
-  const [activityLevel, setActivityLevel] = useState<ActivityLevel>('moderate');
-  const [calorieGoal, setCalorieGoal] = useState('');
+  const [name, setName] = useState(initialProfile?.name ?? '');
+  const [height, setHeight] = useState(initialProfile?.height?.toString() ?? '');
+  const [weight, setWeight] = useState(initialProfile?.weight?.toString() ?? '');
+  const [targetWeight, setTargetWeight] = useState(initialProfile?.targetWeight?.toString() ?? '');
+  const [gender, setGender] = useState<Gender | ''>(initialProfile?.gender ?? '');
+  const [age, setAge] = useState(initialProfile?.age?.toString() ?? '');
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel>(initialProfile?.activityLevel ?? 'moderate');
+  const [calorieGoal, setCalorieGoal] = useState(initialProfile?.calorieGoal?.toString() ?? '');
 
   const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>(getNotificationPrefs);
   const [permStatus, setPermStatus] = useState(getPermissionStatus);
 
-  const [customMenus, setCustomMenus] = useState<CustomMenu[]>([]);
+  const customMenus = getCustomMenus();
   const [menuName, setMenuName] = useState('');
   const [menuCategory, setMenuCategory] = useState('한식');
   const [menuCalories, setMenuCalories] = useState('');
+  const [menuPreferences, setMenuPreferences] = useState<MenuPreference[]>([]);
+  const [menuIngredientInfo,setMenuIngredientInfo]=useState<MenuIngredientInfo|undefined>();
   const [confirmDeleteMenuId, setConfirmDeleteMenuId] = useState<string | null>(null);
 
   const [confirmClear, setConfirmClear] = useState(false);
 
-  useEffect(() => {
+  const refreshForm = () => {
     const profile = getProfile();
-    if (profile) {
-      setName(profile.name || '');
-      setHeight(profile.height.toString());
-      setWeight(profile.weight.toString());
-      setTargetWeight(profile.targetWeight?.toString() || '');
-      setGender(profile.gender || '');
-      setAge(profile.age?.toString() || '');
-      setActivityLevel(profile.activityLevel || 'moderate');
-      setCalorieGoal(profile.calorieGoal?.toString() || '');
-    }
-    setCustomMenus(getCustomMenus());
-  }, []);
+    setName(profile?.name ?? ''); setHeight(profile?.height?.toString() ?? ''); setWeight(profile?.weight?.toString() ?? '');
+    setTargetWeight(profile?.targetWeight?.toString() ?? ''); setGender(profile?.gender ?? ''); setAge(profile?.age?.toString() ?? '');
+    setActivityLevel(profile?.activityLevel ?? 'moderate'); setCalorieGoal(profile?.calorieGoal?.toString() ?? '');
+    setNotifPrefs(getNotificationPrefs()); setPermStatus(getPermissionStatus());
+  };
 
   const suggestedCalories = useMemo(() => {
     const h = parseFloat(height);
@@ -104,6 +111,7 @@ const ProfileSetting = () => {
   }, [height, weight, targetWeight, gender, age, activityLevel]);
 
   const handleToggleNotification = async () => {
+    try {
     if (!notifPrefs.enabled) {
       const granted = await requestPermission();
       setPermStatus(getPermissionStatus());
@@ -112,24 +120,27 @@ const ProfileSetting = () => {
         return;
       }
       const updated = { ...notifPrefs, enabled: true };
-      setNotifPrefs(updated);
       saveNotificationPrefs(updated);
+      setNotifPrefs(updated);
       scheduleMealNotifications(updated);
       toast.success('알림이 활성화되었습니다!');
     } else {
       const updated = { ...notifPrefs, enabled: false };
-      setNotifPrefs(updated);
       saveNotificationPrefs(updated);
+      setNotifPrefs(updated);
       clearScheduledNotifications();
       toast.info('알림이 비활성화되었습니다.');
     }
+    } catch (error) { toast.error(storageErrorMessage(error)); }
   };
 
   const handleTimeChange = (meal: keyof Pick<NotificationPrefs, 'breakfast' | 'lunch' | 'dinner'>, value: string) => {
     const updated = { ...notifPrefs, [meal]: value };
-    setNotifPrefs(updated);
-    saveNotificationPrefs(updated);
-    if (updated.enabled) scheduleMealNotifications(updated);
+    try {
+      saveNotificationPrefs(updated);
+      setNotifPrefs(updated);
+      if (updated.enabled) scheduleMealNotifications(updated);
+    } catch (error) { toast.error(storageErrorMessage(error)); }
   };
 
   const handleTestNotification = async () => {
@@ -144,108 +155,70 @@ const ProfileSetting = () => {
   };
 
   const handleSave = () => {
-    const heightNum = parseFloat(height);
-    const weightNum = parseFloat(weight);
-    const calorieGoalNum = calorieGoal ? parseFloat(calorieGoal) : undefined;
-
-    if (!heightNum || !weightNum || heightNum <= 0 || weightNum <= 0) {
-      toast.warning('올바른 키와 몸무게를 입력해주세요!');
-      return;
-    }
-    if (calorieGoalNum && calorieGoalNum <= 0) {
-      toast.warning('올바른 칼로리 목표를 입력해주세요!');
-      return;
-    }
-
-    const existingProfile = getProfile();
-    const targetWeightNum = targetWeight ? parseFloat(targetWeight) : undefined;
-    const ageNum = age ? parseInt(age) : undefined;
-    saveProfile({
-      ...existingProfile,
-      name: name.trim() || undefined,
-      height: heightNum,
-      weight: weightNum,
-      targetWeight: targetWeightNum && targetWeightNum > 0 ? targetWeightNum : undefined,
-      gender: gender || undefined,
-      age: ageNum && ageNum > 0 ? ageNum : undefined,
-      activityLevel,
-      calorieGoal: calorieGoalNum,
-    });
-    toast.success('프로필이 저장되었습니다!');
+    const h = Number(height), w = Number(weight);
+    const goal = calorieGoal.trim() ? Number(calorieGoal) : undefined;
+    const target = targetWeight.trim() ? Number(targetWeight) : undefined;
+    const ageValue = age.trim() ? Number(age) : undefined;
+    if (!height.trim() || !weight.trim() || !Number.isFinite(h) || !Number.isFinite(w) || h <= 0 || h > 300 || w <= 0 || w > 1000) { toast.warning('키와 몸무게를 확인해주세요.'); return; }
+    if ((goal !== undefined && (!Number.isFinite(goal) || goal <= 0 || goal > 100000)) || (target !== undefined && (!Number.isFinite(target) || target <= 0 || target > 1000)) || (ageValue !== undefined && (!Number.isInteger(ageValue) || ageValue <= 0 || ageValue > 130))) { toast.warning('목표 칼로리, 목표 체중과 나이를 확인해주세요.'); return; }
+    try {
+      saveProfile({ ...getProfile(), height:h, weight:w, name:name.trim() || undefined, targetWeight:target, gender:gender || undefined, age:ageValue, activityLevel, calorieGoal:goal });
+      toast.success('프로필이 저장되었습니다.');
+    } catch (error) { toast.error(storageErrorMessage(error)); }
   };
-
   const handleAddMenu = () => {
-    if (!menuName.trim()) {
-      toast.warning('메뉴 이름을 입력해주세요!');
-      return;
-    }
-    const cal = menuCalories ? parseFloat(menuCalories) : undefined;
-    if (cal !== undefined && (isNaN(cal) || cal < 0)) {
-      toast.warning('올바른 칼로리를 입력해주세요!');
-      return;
-    }
-
-    saveCustomMenu({
-      id: crypto.randomUUID(),
-      name: menuName.trim(),
-      category: menuCategory,
-      calories: cal,
-    });
-
-    setMenuName('');
-    setMenuCalories('');
-    setMenuCategory('한식');
-    setCustomMenus(getCustomMenus());
-    toast.success(`'${menuName.trim()}' 메뉴가 추가되었습니다!`);
+    const cal = menuCalories.trim() ? Number(menuCalories) : undefined;
+    if (!menuName.trim()) { toast.warning('메뉴 이름을 입력해주세요.'); return; }
+    if (cal !== undefined && (!Number.isFinite(cal) || cal < 0 || cal > 100000)) { toast.warning('칼로리는 0 이상의 숫자로 입력해주세요.'); return; }
+    try {
+      saveCustomMenu({ id:crypto.randomUUID(), name:menuName.trim(), category:menuCategory, calories:cal, preferences:menuPreferences,ingredientInfo:menuIngredientInfo });
+      setMenuName(''); setMenuCalories(''); setMenuCategory('한식'); setMenuPreferences([]);setMenuIngredientInfo(undefined);
+      toast.success('메뉴가 추가되었습니다.');
+    } catch (error) { toast.error(storageErrorMessage(error)); }
   };
-
   const handleDeleteMenu = (id: string) => {
-    deleteCustomMenu(id);
-    setConfirmDeleteMenuId(null);
-    setCustomMenus(getCustomMenus());
-    toast.success('메뉴가 삭제되었습니다.');
+    try { deleteCustomMenu(id); setConfirmDeleteMenuId(null); toast.success('메뉴가 삭제되었습니다. 기존 식사 기록은 유지됩니다.'); }
+    catch (error) { toast.error(storageErrorMessage(error)); }
   };
-
-  const handleClearData = () => {
-    clearAllData();
-    setName('');
-    setHeight('');
-    setWeight('');
-    setCalorieGoal('');
-    setCustomMenus([]);
-    setConfirmClear(false);
-    toast.info('모든 데이터가 삭제되었습니다.');
+  const handleMenuPreferences = (id: string, preferences: MenuPreference[]) => {
+    try { updateCustomMenuPreferences(id, preferences); }
+    catch(error) { toast.error(storageErrorMessage(error)); }
   };
-
-  const handleExport = () => {
-    const data = exportAllData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `meallog_backup_${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('데이터를 내보냈습니다!');
+  const handleMenuIngredients=(id:string,ingredientInfo:MenuIngredientInfo|undefined)=>{
+    try{updateCustomMenuIngredients(id,ingredientInfo);}catch(error){toast.error(storageErrorMessage(error));}
   };
-
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const runDataTask = async (task: () => Promise<void>) => {
+    if (dataBusyRef.current) return;
+    dataBusyRef.current = true; setDataBusy(true);
+    try { await task(); } catch (error) { toast.error(storageErrorMessage(error)); }
+    finally { dataBusyRef.current = false; setDataBusy(false); }
+  };
+  const handleClearData = () => runDataTask(async () => {
+    await clearAllData(); refreshForm(); setConfirmClear(false); setPendingBackup(null);
+    toast.info('사진과 설정을 포함한 모든 데이터가 삭제되었습니다.');
+  });
+  const handleExport = () => runDataTask(async () => {
+    const data = await exportAllData();
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data)], {type:'application/json'}));
+    const link = document.createElement('a'); link.href=url; link.download='meallog_backup_' + formatDate(new Date()) + '.json';
+    link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast.success('사진을 포함한 백업 파일을 내보냈습니다.');
+  });
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; event.target.value='';
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      try {
-        const data = JSON.parse(reader.result as string);
-        importAllData(data);
-        setCustomMenus(getCustomMenus());
-        toast.success('데이터를 복원했습니다! 새로고침하면 반영됩니다.');
-      } catch {
-        toast.error('파일 형식이 올바르지 않습니다.');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
+    void runDataTask(async () => {
+      const data = validateBackup(JSON.parse(await file.text()));
+      setPendingBackup(data);
+    });
   };
+  const confirmImport = (mode: ImportMode) => runDataTask(async () => {
+    if (!pendingBackup) return;
+    const {missingPhotos} = await importAllData(pendingBackup, mode);
+    refreshForm(); setPendingBackup(null);
+    toast.success('백업을 복원했습니다. 변경 내용이 바로 반영됩니다.');
+    if (missingPhotos) toast.warning('이전 형식의 백업에 사진 파일이 없어 ' + missingPhotos + '건은 텍스트만 복원했습니다.');
+  });
 
   const bmiInfo = (() => {
     const h = parseFloat(height);
@@ -254,49 +227,50 @@ const ProfileSetting = () => {
   })();
 
   return (
-    <div className="max-w-[460px] mx-auto space-y-3 animate-fade-in">
+    <div className="page-content space-y-3 ">
       {/* ─── 프로필 ─── */}
-      <div className="bg-white rounded-2xl border border-[#d8dde4] shadow-[0_6px_20px_rgba(15,23,42,0.06)] p-4">
-        <div className="text-left mb-5 px-1">
-          <p className="text-[11px] font-semibold text-[#666d78] mb-1">설정</p>
+      <div className="page-section">
+        <div className="page-heading">
+          <p className="text-[13px] font-semibold text-[#586b7a] mb-1">설정</p>
           <div className="flex items-center justify-between">
-            <h2 className="text-[24px] font-black text-[#1f1d19] tracking-tight leading-tight">프로필 설정</h2>
-            <span className="text-3xl animate-float">⚙️</span>
+            <h2 className="text-[24px] font-black text-[#263f56] tracking-tight leading-tight">프로필 설정</h2>
+            <span className="text-3xl ">⚙️</span>
           </div>
         </div>
 
-        <div className="space-y-4 bg-white rounded-xl border border-[#d8dde4] p-4 shadow-[0_2px_8px_rgba(15,23,42,0.05)]">
+        <div className="space-y-4 content-surface profile-form">
           <div>
-            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">이름 (선택)</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="이름을 입력하세요" className={inputClass} />
+            <label htmlFor="profilesetting-field-1" className="block text-xs font-semibold text-[#586b7a] mb-1.5">이름 (선택)</label>
+            <input id="profilesetting-field-1" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="이름을 입력하세요" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">키 (cm)</label>
-            <input type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="170" className={inputClass} />
+            <label htmlFor="profilesetting-field-2" className="block text-xs font-semibold text-[#586b7a] mb-1.5">키 (cm)</label>
+            <input id="profilesetting-field-2" type="number" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="170" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">몸무게 (kg)</label>
-            <input type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="65" className={inputClass} />
+            <label htmlFor="profilesetting-field-3" className="block text-xs font-semibold text-[#586b7a] mb-1.5">몸무게 (kg)</label>
+            <input id="profilesetting-field-3" type="number" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="65" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">목표 체중 (kg, 선택)</label>
-            <input type="number" value={targetWeight} onChange={(e) => setTargetWeight(e.target.value)} placeholder="60" className={inputClass} />
+            <label htmlFor="profilesetting-field-4" className="block text-xs font-semibold text-[#586b7a] mb-1.5">목표 체중 (kg, 선택)</label>
+            <input id="profilesetting-field-4" type="number" value={targetWeight} onChange={(e) => setTargetWeight(e.target.value)} placeholder="60" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">성별</label>
+            <label className="block text-xs font-semibold text-[#586b7a] mb-1.5">성별</label>
             <div className="flex gap-3">
               {([['male', '남성'], ['female', '여성']] as const).map(([val, label]) => (
                 <button
                   key={val}
                   type="button"
+                  aria-pressed={gender === val}
                   onClick={() => setGender(val)}
                     className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${gender === val
-                      ? 'bg-[#0099ff] text-white border-[#0099ff] shadow-none'
-                      : 'bg-white text-[#666d78] border-[#d8dde4] hover:border-[#76c9ff]'
+                      ? 'bg-[#3974a6] text-white border-[#3974a6] shadow-none'
+                      : 'bg-white text-[#586b7a] border-[#d8e6f0] hover:border-[#7ba6c6]'
                     }`}
                 >
                   {label}
@@ -306,16 +280,16 @@ const ProfileSetting = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">나이 (세)</label>
-            <input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" className={inputClass} />
+            <label htmlFor="profilesetting-field-5" className="block text-xs font-semibold text-[#586b7a] mb-1.5">나이 (세)</label>
+            <input id="profilesetting-field-5" type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="25" className={inputClass} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">활동량</label>
+            <label htmlFor="profilesetting-field-6" className="block text-xs font-semibold text-[#586b7a] mb-1.5">활동량</label>
             <select
-              value={activityLevel}
+id="profilesetting-field-6"               value={activityLevel}
               onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
-              className="w-full px-4 py-2.5 border border-[#d8dde4] bg-white rounded-xl focus:border-[#0099ff] focus:ring-2 focus:ring-[#0099ff]/15 focus:outline-none transition-all text-sm"
+              className="w-full px-4 py-2.5 border border-[#d8e6f0] bg-white rounded-xl focus:border-[#3974a6] focus:ring-2 focus:ring-[#3974a6]/15 focus:outline-none transition-all text-sm"
             >
               {(Object.entries(ACTIVITY_LABELS) as [ActivityLevel, string][]).map(([val, label]) => (
                 <option key={val} value={val}>{label}</option>
@@ -324,11 +298,11 @@ const ProfileSetting = () => {
           </div>
 
           {bmiInfo && (
-            <div className="bg-[#f3f5f8] border border-[#d8dde4] rounded-2xl p-4">
+            <div className="bg-[#e8f2fa] rounded-2xl p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-[#666d78] mb-1">현재 BMI 지수</p>
-                  <p className="text-2xl font-bold text-[#1f1d19]">{bmiInfo.bmi}</p>
+                  <p className="text-xs text-[#586b7a] mb-1">현재 BMI 지수</p>
+                  <p className="text-2xl font-bold text-[#263f56]">{bmiInfo.bmi}</p>
                   <p className={`text-sm font-semibold ${bmiInfo.color}`}>{bmiInfo.category}</p>
                 </div>
                 <div className="text-4xl">⚖️</div>
@@ -337,12 +311,12 @@ const ProfileSetting = () => {
           )}
 
           {suggestedCalories && (
-            <div className="bg-[#f3f5f8] border border-[#d8dde4] rounded-2xl p-4">
-              <p className="text-xs text-[#666d78] mb-1">Harris-Benedict 자동 계산 권장 칼로리</p>
+            <div className="bg-[#e8f2fa] rounded-2xl p-4">
+              <p className="text-xs text-[#586b7a] mb-1">Harris-Benedict 자동 계산 권장 칼로리</p>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold text-[#1f1d19]">{suggestedCalories.toLocaleString()} kcal</p>
-                  <p className="text-xs text-[#0099ff] mt-0.5">
+                  <p className="text-2xl font-bold text-[#263f56]">{suggestedCalories.toLocaleString()} kcal</p>
+                  <p className="text-xs text-[#3974a6] mt-0.5">
                     {parseFloat(targetWeight) > 0 && parseFloat(targetWeight) < parseFloat(weight)
                       ? '감량 목표 (-500 kcal 적용)'
                       : parseFloat(targetWeight) > 0 && parseFloat(targetWeight) > parseFloat(weight)
@@ -353,7 +327,7 @@ const ProfileSetting = () => {
                 <button
                   type="button"
                   onClick={() => setCalorieGoal(suggestedCalories.toString())}
-                  className="px-4 py-2 bg-[#0099ff] text-white text-xs font-bold rounded-xl hover:bg-[#008ae6] transition-colors"
+                  className="px-4 py-2 bg-[#3974a6] text-white text-xs font-bold rounded-xl hover:bg-[#2e6391] transition-colors"
                 >
                   적용
                 </button>
@@ -362,18 +336,18 @@ const ProfileSetting = () => {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-[#666d78] mb-1.5">
+            <label htmlFor="profilesetting-field-7" className="block text-xs font-semibold text-[#586b7a] mb-1.5">
               하루 칼로리 목표 (kcal, 선택)
             </label>
-            <input type="number" value={calorieGoal} onChange={(e) => setCalorieGoal(e.target.value)} placeholder="2000" className={inputClass} />
-            <p className="text-[10px] text-[#666d78] mt-1 ml-1">
+            <input id="profilesetting-field-7" type="number" value={calorieGoal} onChange={(e) => setCalorieGoal(e.target.value)} placeholder="2000" className={inputClass} />
+            <p className="text-[12px] text-[#586b7a] mt-1 ml-1">
               입력 시 히스토리에서 일일 칼로리 섭취량을 추적할 수 있어요
             </p>
           </div>
 
           <button
             onClick={handleSave}
-            className="w-full py-3.5 bg-[#0099ff] text-white font-semibold text-base rounded-2xl hover:bg-[#008ae6] active:bg-[#007acc] transition-colors duration-150 shadow-none"
+            className="w-full py-3.5 bg-[#3974a6] text-white font-semibold text-base rounded-2xl hover:bg-[#2e6391] active:bg-[#263f56] transition-colors duration-150 shadow-none"
           >
             프로필 저장
           </button>
@@ -381,11 +355,11 @@ const ProfileSetting = () => {
       </div>
 
       {/* ─── 알림 설정 ─── */}
-      <div className="bg-white rounded-3xl border border-[#d8dde4] shadow-none p-5">
+      <div className="content-surface">
         <div className="text-center mb-5">
-          <span className="text-3xl animate-float inline-block">🔔</span>
-          <h2 className="text-xl font-bold text-[#1f1d19] mt-2 mb-1 tracking-tight">식사 알림</h2>
-          <p className="text-xs text-[#666d78]">앱이 열려 있는 동안 식사 시간을 알려드려요</p>
+          <span className="text-3xl  inline-block">🔔</span>
+          <h2 className="text-xl font-bold text-[#263f56] mt-2 mb-1 tracking-tight">식사 알림</h2>
+          <p className="text-xs text-[#586b7a]">앱이 열려 있는 동안 식사 시간을 알려드려요</p>
         </div>
 
         {permStatus === 'unsupported' ? (
@@ -408,6 +382,7 @@ const ProfileSetting = () => {
                 </p>
               </div>
               <button
+                role="switch" aria-checked={notifPrefs.enabled} aria-label="식사 알림"
                 onClick={handleToggleNotification}
                 disabled={permStatus === 'denied'}
                 className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-50 ${notifPrefs.enabled ? 'bg-brand-500' : 'bg-gray-200'}`}
@@ -431,6 +406,7 @@ const ProfileSetting = () => {
                   <div key={key} className="flex items-center justify-between">
                     <span className="text-sm font-medium text-apple-text">{label}</span>
                     <input
+                      aria-label={`${label} 알림 시간`}
                       type="time"
                       value={notifPrefs[key]}
                       onChange={(e) => handleTimeChange(key, e.target.value)}
@@ -453,23 +429,23 @@ const ProfileSetting = () => {
       </div>
 
       {/* ─── 나만의 메뉴 ─── */}
-      <div className="bg-white rounded-3xl border border-[#d8dde4] shadow-none p-5">
+      <div className="content-surface">
         <div className="text-center mb-5">
-          <span className="text-3xl animate-float inline-block">🍳</span>
-          <h2 className="text-xl font-bold text-[#1f1d19] mt-2 mb-1 tracking-tight">나만의 메뉴</h2>
-          <p className="text-xs text-[#666d78]">추가한 메뉴는 추천·기록에 자동으로 포함됩니다</p>
+          <span className="text-3xl  inline-block">🍳</span>
+          <h2 className="text-xl font-bold text-[#263f56] mt-2 mb-1 tracking-tight">나만의 메뉴</h2>
+          <p className="text-xs text-[#586b7a]">추가한 메뉴는 추천·기록에 자동으로 포함됩니다</p>
         </div>
 
         <div className="bg-apple-bg border border-apple-border-light rounded-xl p-4 mb-4 space-y-3">
           <div>
-            <label className="block text-xs font-semibold text-apple-secondary mb-1.5">메뉴 이름</label>
-            <input type="text" value={menuName} onChange={(e) => setMenuName(e.target.value)} placeholder="예: 엄마표 된장찌개" className={inputClass} />
+            <label htmlFor="profilesetting-field-8" className="block text-xs font-semibold text-apple-secondary mb-1.5">메뉴 이름</label>
+            <input id="profilesetting-field-8" type="text" value={menuName} onChange={(e) => setMenuName(e.target.value)} placeholder="예: 엄마표 된장찌개" className={inputClass} />
           </div>
           <div className="flex gap-2">
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-apple-secondary mb-1.5">카테고리</label>
+              <label htmlFor="profilesetting-field-9" className="block text-xs font-semibold text-apple-secondary mb-1.5">카테고리</label>
               <select
-                value={menuCategory}
+id="profilesetting-field-9"                 value={menuCategory}
                 onChange={(e) => setMenuCategory(e.target.value)}
                 className="w-full px-3 py-2.5 border border-apple-border bg-white rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10 focus:outline-none transition-all text-sm"
               >
@@ -479,9 +455,9 @@ const ProfileSetting = () => {
               </select>
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-semibold text-apple-secondary mb-1.5">칼로리 (선택)</label>
+              <label htmlFor="profilesetting-field-10" className="block text-xs font-semibold text-apple-secondary mb-1.5">칼로리 (선택)</label>
               <input
-                type="number"
+id="profilesetting-field-10"                 type="number"
                 value={menuCalories}
                 onChange={(e) => setMenuCalories(e.target.value)}
                 placeholder="450"
@@ -489,6 +465,11 @@ const ProfileSetting = () => {
               />
             </div>
           </div>
+          <div className="space-y-2">
+            <p className="text-sm text-apple-secondary">취향 태그 (선택) · 취향 추천에 사용돼요.</p>
+            <MenuPreferencePicker compact value={menuPreferences} onChange={setMenuPreferences}/>
+          </div>
+          <details><summary className="cursor-pointer font-semibold py-2">알레르기·제외 조건용 재료 정보</summary><div className="pt-3"><MenuIngredientEditor value={menuIngredientInfo} onChange={setMenuIngredientInfo}/></div></details>
           <button
             onClick={handleAddMenu}
             className="w-full py-2.5 bg-brand-500 text-white font-semibold rounded-lg hover:bg-brand-600 transition-colors text-sm"
@@ -506,14 +487,20 @@ const ProfileSetting = () => {
             {customMenus.map((menu) => (
               <div
                 key={menu.id}
-                className="flex items-center justify-between bg-apple-bg border border-apple-border-light rounded-xl px-4 py-3 hover:border-brand-300 transition-all"
+                className="flex items-start justify-between gap-3 bg-apple-bg border border-apple-border-light rounded-xl px-4 py-3 hover:border-brand-300 transition-all"
               >
-                <div>
-                  <p className="text-sm font-semibold text-apple-text">{menu.name}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-apple-text break-words">{menu.name}</p>
                   <p className="text-xs text-brand-500">
                     {menu.category}
-                    {menu.calories ? ` · ${menu.calories}kcal` : ''}
+                    {menu.calories != null ? ` · ${menu.calories}kcal` : ' · 칼로리 미입력'}
                   </p>
+                  <details className="mt-2">
+                    <summary className="text-sm text-app-primary cursor-pointer py-2">맛·재료 태그 수정</summary>
+                    <div className="mt-2"><MenuPreferencePicker value={menu.preferences??[]} onChange={value=>handleMenuPreferences(menu.id,value)}/></div>
+                    <p className="text-xs text-apple-secondary mt-2">{menu.preferences?.length ? menu.preferences.map(preferenceLabel).join(', ') : '선택한 태그가 없어요.'} · 변경 시 자동 저장</p>
+                  </details>
+                  <details className="mt-2"><summary className="text-sm cursor-pointer py-2">포함·포함 가능 재료 수정</summary><div className="pt-3"><MenuIngredientEditor value={menu.ingredientInfo} onChange={value=>handleMenuIngredients(menu.id,value)}/></div><p className="text-xs text-apple-secondary mt-2">변경 시 자동 저장 · 제외 조건에 사용됩니다.</p></details>
                 </div>
                 {confirmDeleteMenuId === menu.id ? (
                   <div className="flex gap-1">
@@ -536,30 +523,41 @@ const ProfileSetting = () => {
       </div>
 
       {/* ─── 데이터 관리 ─── */}
-      <div className="bg-white rounded-3xl border border-[#d8dde4] shadow-none p-5">
+      <div className="content-surface">
         <div className="text-center mb-5">
-          <span className="text-3xl animate-float inline-block">🗂️</span>
-          <h2 className="text-xl font-bold text-[#1f1d19] mt-2 mb-1 tracking-tight">데이터 관리</h2>
+          <span className="text-3xl  inline-block">🗂️</span>
+          <h2 className="text-xl font-bold text-[#263f56] mt-2 mb-1 tracking-tight">데이터 관리</h2>
         </div>
 
-        <div className="space-y-3">
+        <fieldset disabled={dataBusy} className="space-y-3 disabled:opacity-60">
           <button
             onClick={handleExport}
-            className="w-full py-3 bg-[#0099ff] text-white font-semibold rounded-lg hover:bg-[#008ae6] transition-colors text-sm"
+            className="w-full py-3 bg-[#3974a6] text-white font-semibold rounded-lg hover:bg-[#2e6391] transition-colors text-sm"
           >
-            📤 데이터 내보내기 (JSON)
+            사진 포함 백업 내보내기
           </button>
 
           <label className="block w-full py-3 bg-apple-bg text-apple-secondary font-semibold rounded-lg hover:bg-gray-200 border border-apple-border-light transition-all text-sm text-center cursor-pointer">
-            📥 데이터 가져오기 (JSON)
-            <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+            백업 파일 가져오기
+            <input type="file" accept=".json" onChange={handleImport} className="sr-only" />
           </label>
 
+          {dataBusy && <p role="status" className="text-sm text-apple-secondary">데이터를 처리하고 있어요.</p>}
+          {pendingBackup && <div className="bg-apple-bg rounded-2xl p-4 space-y-3">
+            <p className="font-semibold">식사 {pendingBackup.mealRecords.length}건, 체중 {pendingBackup.weightRecords.length}건을 가져옵니다.</p>
+            <p className="text-sm text-apple-secondary">합치기는 기존 기록과 프로필을 유지하고 새 기록을 추가합니다. 같은 ID의 기록은 중복으로 추가하지 않습니다. 제외 재료는 두 설정을 합칩니다. 교체하기는 현재 데이터를 백업 내용으로 바꾸며, 백업에 제외 설정이 있으면 그것으로 교체합니다. 제외 설정이 없는 이전 백업은 현재 제외 설정을 유지합니다.</p>
+            {pendingBackup.mealRecords.some(record => record.imageUrl?.startsWith('idb:')) && <p className="text-sm text-amber-700">이전 형식의 백업입니다. 이 기기에 없는 사진은 복원할 수 없습니다.</p>}
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => confirmImport('merge')} className="btn-primary px-4 py-3">합치기</button>
+              <button onClick={() => confirmImport('replace')} className="bg-white rounded-xl px-4 py-3 text-red-600">교체하기</button>
+              <button onClick={() => setPendingBackup(null)} className="px-4 py-3">취소</button>
+            </div>
+          </div>}
           {confirmClear ? (
             <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
               <p className="text-sm font-semibold text-red-600 mb-3 text-center">
                 정말로 모든 데이터를 삭제하시겠습니까?<br />
-                <span className="text-xs font-normal">프로필, 식사 기록, 메뉴가 모두 삭제됩니다.</span>
+                <span className="text-xs font-normal">식사·체중 기록, 사진과 설정이 모두 삭제됩니다.</span>
               </p>
               <div className="flex gap-2">
                 <button onClick={handleClearData} className="flex-1 py-2.5 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-all text-sm">
@@ -579,15 +577,15 @@ const ProfileSetting = () => {
             </button>
           )}
           <p className="text-xs text-apple-secondary text-center">
-            프로필, 식사 기록, 커스텀 메뉴가 모두 삭제됩니다
+            프로필, 식사·체중 기록, 사진과 설정이 모두 삭제됩니다
           </p>
-        </div>
+        </fieldset>
       </div>
 
       {/* 앱 정보 */}
       <div className="text-center py-4">
-        <p className="text-[#666d78] font-semibold mb-1 text-sm">MealLog v1.3</p>
-        <p className="text-xs text-[#666d78]">맛있는 하루를 기록하세요 🍱</p>
+        <p className="text-[#586b7a] font-semibold mb-1 text-sm">MealLog v1.3</p>
+        <p className="text-xs text-[#586b7a]">맛있는 하루를 기록하세요 🍱</p>
       </div>
     </div>
   );

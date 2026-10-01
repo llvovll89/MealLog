@@ -60,7 +60,7 @@ describe('useInsightMetrics', () => {
       timestamp: now - 8 * 24 * 60 * 60 * 1000,
     });
 
-    const { result } = renderHook(() => useInsightMetrics('report'));
+    const { result } = renderHook(() => useInsightMetrics());
 
     expect(result.current.recentActiveDays).toBe(3);
     expect(result.current.streakDays).toBe(3);
@@ -85,7 +85,7 @@ describe('useInsightMetrics', () => {
       timestamp: now - 1_000,
     });
 
-    const { result } = renderHook(() => useInsightMetrics('stats'));
+    const { result } = renderHook(() => useInsightMetrics());
 
     expect(result.current.hasGoal).toBe(false);
     expect(result.current.weeklyGoalHitRate).toBe(0);
@@ -93,7 +93,7 @@ describe('useInsightMetrics', () => {
   });
 
   it('기록이 없으면 핵심 지표를 0으로 반환한다', () => {
-    const { result } = renderHook(() => useInsightMetrics('history'));
+    const { result } = renderHook(() => useInsightMetrics());
 
     expect(result.current.streakDays).toBe(0);
     expect(result.current.recentActiveDays).toBe(0);

@@ -1,98 +1,38 @@
-import { useMemo } from 'react';
+﻿import type { MealRecord } from '../types';
 import { getMealRecords, getProfile } from '../utils/storage';
-import { getAllMenuItems } from '../utils/recommendationEngine';
+import { dateKeyAgo } from '../utils/dates';
+import { summarizeDay } from '../utils/mealNutrition';
+import { useStorageRevision } from './useStorageRevision';
 
 export interface InsightMetrics {
-  weeklyAvgCalories: number;
-  weeklyGoalHitRate: number;
-  streakDays: number;
-  recentActiveDays: number;
-  activeDaysDelta: number;
-  weeklyAvgDelta: number;
-  weeklyGoalHitDelta: number;
-  goalDistanceDelta: number;
-  hasGoal: boolean;
-  currentWeekDailyCalories: number[];
-  currentWeekHitFlags: number[];
+  weeklyAvgCalories: number; weeklyGoalHitRate: number; streakDays: number; recentActiveDays: number;
+  activeDaysDelta: number; weeklyAvgDelta: number; weeklyGoalHitDelta: number; goalDistanceDelta: number;
+  hasGoal: boolean; currentWeekDailyCalories: number[]; currentWeekHitFlags: number[];
+  weeklyKnownDays: number; weeklyUnknownMeals: number;
 }
-
-const toDateKey = (offsetFromToday: number): string => {
-  const d = new Date();
-  d.setDate(d.getDate() - offsetFromToday);
-  return d.toISOString().split('T')[0];
+export const calculateInsightMetrics = (records: MealRecord[], goal: number | null): InsightMetrics => {
+  const hasGoal = goal !== null && goal > 0;
+  const recordDates = new Set(records.map(record => record.date));
+  const calcWindow = (start: number, end: number) => {
+    const days = Array.from({length:start - end + 1}, (_, index) => summarizeDay(records.filter(record => record.date === dateKeyAgo(start - index))));
+    const complete = days.filter(day => day.complete);
+    const avgCalories = complete.length ? Math.round(complete.reduce((sum, day) => sum + day.calories, 0) / complete.length) : 0;
+    const hitFlags = days.map(day => hasGoal && day.complete && Math.abs(day.calories - goal!) <= goal! * .2 ? 1 : 0);
+    return { activeDays: days.filter(day => day.recorded).length, knownDays:complete.length, unknownMeals:days.reduce((sum, day) => sum + day.unknownCount, 0),
+      avgCalories, hitRate:hasGoal && complete.length ? Math.round(hitFlags.reduce<number>((a,b)=>a+b,0) / complete.length * 100) : 0,
+      dailyCalories:days.map(day => day.calories), hitFlags };
+  };
+  const current = calcWindow(6,0), previous = calcWindow(13,7);
+  let streak = 0;
+  while (streak < 365 && recordDates.has(dateKeyAgo(streak))) streak++;
+  return { weeklyAvgCalories:current.avgCalories, weeklyGoalHitRate:current.hitRate, streakDays:streak,
+    recentActiveDays:current.activeDays, activeDaysDelta:current.activeDays - previous.activeDays,
+    weeklyAvgDelta:current.avgCalories - previous.avgCalories, weeklyGoalHitDelta:current.hitRate - previous.hitRate,
+    goalDistanceDelta:hasGoal && current.knownDays && previous.knownDays ? Math.abs(current.avgCalories - goal!) - Math.abs(previous.avgCalories - goal!) : 0,
+    hasGoal, currentWeekDailyCalories:current.dailyCalories, currentWeekHitFlags:current.hitFlags,
+    weeklyKnownDays:current.knownDays, weeklyUnknownMeals:current.unknownMeals };
 };
-
-export const useInsightMetrics = (refreshKey?: string): InsightMetrics => {
-  return useMemo(() => {
-    const records = getMealRecords();
-    const allMenus = getAllMenuItems();
-    const goal = getProfile()?.calorieGoal ?? null;
-    const menuCalories = new Map(allMenus.map((m) => [m.name, m.calories]));
-    const recordDates = new Set(records.map((r) => r.date));
-
-    const calcWindow = (startOffset: number, endOffset: number) => {
-      const dateList: string[] = [];
-      for (let i = startOffset; i >= endOffset; i--) {
-        dateList.push(toDateKey(i));
-      }
-
-      const dailyCalories = dateList.map((date) => {
-        const dayRecords = records.filter((r) => r.date === date);
-        return dayRecords.reduce((sum, r) => sum + (menuCalories.get(r.menu) ?? 0), 0);
-      });
-
-      const activeDays = dailyCalories.filter((v) => v > 0).length;
-      const totalCalories = dailyCalories.reduce((a, b) => a + b, 0);
-      const avgCalories = activeDays > 0 ? Math.round(totalCalories / activeDays) : 0;
-      const hitDays = goal
-        ? dailyCalories.filter((cal) => cal > 0 && Math.abs(cal - goal) <= goal * 0.2).length
-        : 0;
-      const hitRate = goal && activeDays > 0 ? Math.round((hitDays / activeDays) * 100) : 0;
-      const hitFlags = dailyCalories.map((cal) => {
-        if (!goal || cal <= 0) return 0;
-        return Math.abs(cal - goal) <= goal * 0.2 ? 1 : 0;
-      });
-
-      return {
-        activeDays,
-        avgCalories,
-        hitRate,
-        dailyCalories,
-        hitFlags,
-      };
-    };
-
-    const currentWeek = calcWindow(6, 0);
-    const previousWeek = calcWindow(13, 7);
-
-    const currentGoalDistance = goal ? Math.abs(currentWeek.avgCalories - goal) : null;
-    const previousGoalDistance = goal ? Math.abs(previousWeek.avgCalories - goal) : null;
-
-    let streak = 0;
-    for (let i = 0; i < 365; i++) {
-      const key = toDateKey(i);
-      if (recordDates.has(key)) {
-        streak += 1;
-      } else {
-        break;
-      }
-    }
-
-    return {
-      weeklyAvgCalories: currentWeek.avgCalories,
-      weeklyGoalHitRate: currentWeek.hitRate,
-      streakDays: streak,
-      recentActiveDays: currentWeek.activeDays,
-      activeDaysDelta: currentWeek.activeDays - previousWeek.activeDays,
-      weeklyAvgDelta: currentWeek.avgCalories - previousWeek.avgCalories,
-      weeklyGoalHitDelta: currentWeek.hitRate - previousWeek.hitRate,
-      goalDistanceDelta:
-        currentGoalDistance != null && previousGoalDistance != null
-          ? currentGoalDistance - previousGoalDistance
-          : 0,
-      hasGoal: goal != null,
-      currentWeekDailyCalories: currentWeek.dailyCalories,
-      currentWeekHitFlags: currentWeek.hitFlags,
-    };
-  }, [refreshKey]);
+export const useInsightMetrics = (): InsightMetrics => {
+  useStorageRevision();
+  return calculateInsightMetrics(getMealRecords(), getProfile()?.calorieGoal ?? null);
 };

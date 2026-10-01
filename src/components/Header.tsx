@@ -1,29 +1,25 @@
-const Header = () => {
+﻿const Header = () => {
   const todayText = new Date().toLocaleDateString('ko-KR', {
-    month: 'long',
-    day: 'numeric',
-    weekday: 'short',
+    month: 'long', day: 'numeric', weekday: 'short',
   });
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-3 pt-3">
-      <div className="max-w-[460px] mx-auto rounded-2xl bg-white border border-[#d6cebe] shadow-none overflow-hidden">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="min-w-0">
-            <h1 className="text-[18px] font-extrabold text-[#1f1d19] tracking-tight leading-tight">
-              MealLog
-            </h1>
-            <p className="text-[11px] text-[#7a7266] truncate mt-0.5">
-              {todayText} · 개인 식단 로그
-            </p>
+    <header className="app-header">
+      <a href="#main-content" className="skip-link">본문으로 이동</a>
+      <div className="header-inner">
+        <div className="brand-lockup">
+          <svg className="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+            <circle cx="20" cy="20" r="18" fill="#e8f2fa" />
+            <path d="M9 21h22c-1 8-5 11-11 11S10 29 9 21Z" fill="#3974a6" />
+            <path d="M15 8c-4 5 3 6 0 10m7-12c-4 5 3 7 0 11m6-8c-3 4 2 5 0 8" stroke="#3974a6" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <div>
+            <h1 className="brand-name">MealLog<span className="brand-dot">.</span></h1>
+            <p className="brand-caption">맛있는 하루의 기록</p>
           </div>
-          <span className="text-[10px] font-semibold text-[#1f1d19] bg-[#f5f2ec] border border-[#dbd2c2] rounded-md px-2 py-1 whitespace-nowrap">
-            meallog
-          </span>
         </div>
+        <span className="header-date">{todayText}</span>
       </div>
     </header>
   );
 };
-
 export default Header;
