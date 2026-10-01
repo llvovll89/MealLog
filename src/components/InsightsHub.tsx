@@ -3,17 +3,15 @@ import MealHistory from './MealHistory';
 import NutritionDashboard from './NutritionDashboard';
 import WeeklyReport from './WeeklyReport';
 import WeightTracking from './WeightTracking';
-import BMICalculator from './BMICalculator';
 import { useInsightMetrics } from '../hooks/useInsightMetrics';
 
-type InsightTab = 'report' | 'stats' | 'history' | 'weight' | 'bmi';
+type InsightTab = 'report' | 'stats' | 'history' | 'weight';
 
 const insightTabs: { id: InsightTab; label: string; emoji: string }[] = [
   { id: 'report', label: '주간 리포트', emoji: '📋' },
-  { id: 'stats', label: '영양 통계', emoji: '📊' },
+  { id: 'stats', label: '식사 패턴', emoji: '📊' },
   { id: 'history', label: '식사 히스토리', emoji: '📚' },
-  { id: 'weight', label: '체중 추적', emoji: '📈' },
-  { id: 'bmi', label: 'BMI', emoji: '⚖️' },
+  { id: 'weight', label: '체중·BMI', emoji: '📈' },
 ];
 
 const INSIGHTS_TAB_STORAGE_KEY = 'mealog_insights_tab';
@@ -68,7 +66,7 @@ const InfoTooltip = ({
           setOpenId(isOpen ? null : id);
         }}
         onBlur={() => setOpenId(null)}
-        className="text-[10px] text-[#666d78]/80 hover:text-[#4f5b70]"
+        className="info-trigger"
       >
         ⓘ
       </button>
@@ -76,7 +74,7 @@ const InfoTooltip = ({
         <span
           id={`tooltip-${id}`}
           role="tooltip"
-          className="absolute z-10 left-1/2 -translate-x-1/2 top-5 w-44 text-[10px] leading-snug bg-[#0099ff] text-white rounded-md px-2 py-1 shadow-lg"
+          className="absolute z-10 left-1/2 -translate-x-1/2 top-5 w-44 text-[12px] leading-snug bg-[#3974a6] text-white rounded-xl px-2 py-1 shadow-lg"
         >
           {text}
         </span>
@@ -89,6 +87,7 @@ const InsightsHub = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
   const [currentInsightTab, setCurrentInsightTab] = useState<InsightTab>(() => {
     try {
       const saved = localStorage.getItem(INSIGHTS_TAB_STORAGE_KEY);
+      if (saved === 'bmi') return 'weight';
       if (saved && insightTabs.some((tab) => tab.id === saved)) {
         return saved as InsightTab;
       }
@@ -130,7 +129,9 @@ const InsightsHub = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
     hasGoal,
     currentWeekDailyCalories,
     currentWeekHitFlags,
-  } = useInsightMetrics(currentInsightTab);
+    weeklyKnownDays,
+    weeklyUnknownMeals,
+  } = useInsightMetrics();
 
   const trendText = (delta: number, unit: string) => {
     if (delta === 0) return `전주 대비 변화 없음`;
@@ -143,7 +144,7 @@ const InsightsHub = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
     if (delta === 0) return 'text-apple-secondary';
     const isPositive = delta > 0;
     const isGood = mode === 'higher-better' ? isPositive : !isPositive;
-    if (isGood) return 'text-[#34c759]';
+    if (isGood) return 'text-[#477360]';
     if (!isGood) return 'text-red-500';
     return 'text-apple-secondary';
   };
@@ -158,8 +159,6 @@ const InsightsHub = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
         return <MealHistory onSettingsClick={onSettingsClick} />;
       case 'weight':
         return <WeightTracking />;
-      case 'bmi':
-        return <BMICalculator />;
       default:
         return <WeeklyReport onSettingsClick={onSettingsClick} />;
     }
@@ -167,22 +166,23 @@ const InsightsHub = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
 
   return (
     <div>
-      <section className="max-w-[460px] mx-auto pb-0">
-        <div className="bg-white rounded-2xl border border-[#d8dde4] shadow-[0_6px_20px_rgba(15,23,42,0.06)] p-4 mb-3">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-[#1f1d19] tracking-tight">인사이트 허브</h2>
-            <p className="text-xs text-[#666d78]">기록 분석과 건강 지표를 한 곳에서</p>
+      <section className="page-content pb-0">
+        <div className="page-section mb-3">
+          <div className="insight-heading">
+            <h2 className="text-base font-bold text-[#263f56] tracking-tight">나의 식사 돌아보기</h2>
+            <p className="text-xs text-[#586b7a]">차곡차곡 쌓인 기록에서 나의 식사 습관을 찾아요.</p>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="insight-tabs">
             {insightTabs.map((tab) => {
               const active = currentInsightTab === tab.id;
               return (
                 <button
                   key={tab.id}
+                  aria-pressed={active}
                   onClick={() => setCurrentInsightTab(tab.id)}
                   className={`px-3 py-2 rounded-lg border text-xs font-semibold whitespace-nowrap transition-all ${active
-                    ? 'bg-[#0099ff] text-white border-[#0099ff] shadow-none'
-                    : 'bg-white text-[#666d78] border-[#d8dde4] hover:border-[#76c9ff]'
+                    ? 'bg-[#3974a6] text-white border-[#3974a6] shadow-none'
+                    : 'bg-white text-[#586b7a] border-[#d8e6f0] hover:border-[#7ba6c6]'
                     }`}
                 >
                   <span className="mr-1">{tab.emoji}</span>
@@ -193,12 +193,9 @@ const InsightsHub = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-          <button
-            onClick={() => setCurrentInsightTab('history')}
-            className="bg-white rounded-3xl border border-[#d8dde4] shadow-none p-4 text-center transition-all hover:border-[#0099ff]"
-          >
-            <p className="text-xs text-[#666d78] mb-1 inline-flex items-center gap-1 justify-center">
+        <div className="insight-metrics grid grid-cols-1 min-[520px]:grid-cols-3 gap-3 mb-3">
+          <div className="insight-metric">
+            <p className="text-xs text-[#586b7a] mb-1 inline-flex items-center gap-1 justify-center">
               <span>기록 연속일</span>
               <InfoTooltip
                 id="streak"
@@ -207,61 +204,56 @@ const InsightsHub = ({ onSettingsClick }: { onSettingsClick?: () => void }) => {
                 setOpenId={setOpenTooltipId}
               />
             </p>
-            <p className="text-xl font-bold text-[#1f1d19]">{streakDays}일</p>
-            <p className={`text-[10px] font-semibold mt-1 ${trendClass(activeDaysDelta, 'higher-better')}`}>
+            <button className="metric-value" onClick={() => setCurrentInsightTab('history')} aria-label="식사 히스토리 보기">{streakDays}일</button>
+            <p className={`text-[12px] font-semibold mt-1 ${trendClass(activeDaysDelta, 'higher-better')}`}>
               최근 7일 기록 {recentActiveDays}일 · {trendText(activeDaysDelta, '일')}
             </p>
             <Sparkline
               values={currentWeekDailyCalories.map((v) => (v > 0 ? 1 : 0))}
-              color={activeDaysDelta >= 0 ? '#34c759' : '#ff3b30'}
+              color={activeDaysDelta >= 0 ? '#477360' : '#ff3b30'}
             />
-          </button>
-          <button
-            onClick={() => setCurrentInsightTab('report')}
-            className="bg-white rounded-3xl border border-[#d8dde4] shadow-none p-4 text-center transition-all hover:border-[#0099ff]"
-          >
-            <p className="text-xs text-[#666d78] mb-1 inline-flex items-center gap-1 justify-center">
+          </div>
+          <div className="insight-metric">
+            <p className="text-xs text-[#586b7a] mb-1 inline-flex items-center gap-1 justify-center">
               <span>주간 평균 칼로리</span>
               <InfoTooltip
                 id="avg-cal"
-                text="최근 7일 중 기록이 있는 날짜의 평균 섭취 칼로리"
+                text="최근 7일 중 모든 식사의 칼로리를 입력한 날짜의 평균"
                 openId={openTooltipId}
                 setOpenId={setOpenTooltipId}
               />
             </p>
-            <p className="text-xl font-bold text-[#1f1d19]">{weeklyAvgCalories.toLocaleString()}</p>
-            <p className={`text-[10px] font-semibold mt-1 ${hasGoal ? trendClass(goalDistanceDelta, 'lower-better') : trendClass(weeklyAvgDelta, 'neutral')}`}>
-              kcal / 기록일 · {hasGoal ? `목표와 거리 ${trendText(goalDistanceDelta, 'kcal')}` : trendText(weeklyAvgDelta, 'kcal')}
+            <button className="metric-value" onClick={() => setCurrentInsightTab('report')} aria-label="주간 리포트 보기">{weeklyKnownDays ? weeklyAvgCalories.toLocaleString() : '—'}</button>
+            <p className={`text-[12px] font-semibold mt-1 ${hasGoal ? trendClass(goalDistanceDelta, 'lower-better') : trendClass(weeklyAvgDelta, 'neutral')}`}>
+              kcal / 칼로리 입력 완료일 · {hasGoal ? `목표와 거리 ${trendText(goalDistanceDelta, 'kcal')}` : trendText(weeklyAvgDelta, 'kcal')}
             </p>
             <Sparkline
               values={currentWeekDailyCalories}
-              color={hasGoal ? (goalDistanceDelta <= 0 ? '#34c759' : '#ff3b30') : '#0099ff'}
+              color={hasGoal ? (goalDistanceDelta <= 0 ? '#477360' : '#ff3b30') : '#3974a6'}
             />
-          </button>
-          <button
-            onClick={() => setCurrentInsightTab('stats')}
-            className="bg-white rounded-3xl border border-[#d8dde4] shadow-none p-4 text-center transition-all hover:border-[#0099ff]"
-          >
-            <p className="text-xs text-[#666d78] mb-1 inline-flex items-center gap-1 justify-center">
+          </div>
+          <div className="insight-metric">
+            <p className="text-xs text-[#586b7a] mb-1 inline-flex items-center gap-1 justify-center">
               <span>목표 달성률</span>
               <InfoTooltip
                 id="goal-hit"
-                text="기록일 중 목표 칼로리 ±20% 범위에 들어온 비율"
+                text="모든 식사의 칼로리를 입력한 날짜 중 목표 칼로리 ±20% 범위에 들어온 비율"
                 openId={openTooltipId}
                 setOpenId={setOpenTooltipId}
               />
             </p>
-            <p className="text-xl font-bold text-[#1f1d19]">{weeklyGoalHitRate}%</p>
-            <p className={`text-[10px] font-semibold mt-1 ${trendClass(weeklyGoalHitDelta, 'higher-better')}`}>
+            <button className="metric-value" onClick={() => setCurrentInsightTab('stats')} aria-label="식사 패턴 보기">{hasGoal && weeklyKnownDays ? `${weeklyGoalHitRate}%` : '—'}</button>
+            <p className={`text-[12px] font-semibold mt-1 ${trendClass(weeklyGoalHitDelta, 'higher-better')}`}>
               목표 설정 기준 · {trendText(weeklyGoalHitDelta, '포인트')}
             </p>
             <Sparkline
               values={currentWeekHitFlags}
-              color={weeklyGoalHitDelta >= 0 ? '#34c759' : '#ff3b30'}
+              color={weeklyGoalHitDelta >= 0 ? '#477360' : '#ff3b30'}
             />
-          </button>
+          </div>
         </div>
       </section>
+      {weeklyUnknownMeals > 0 && <p className="text-sm text-apple-secondary mb-6">최근 7일 칼로리 미입력 식사 {weeklyUnknownMeals}건이 있어요. 평균과 달성률은 칼로리 입력을 완료한 날짜만 계산합니다.</p>}
       {renderInsightContent()}
     </div>
   );

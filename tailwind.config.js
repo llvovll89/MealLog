@@ -6,16 +6,24 @@ export default {
   ],
   theme: {
     extend: {
+      fontSize: { xs: ['0.8125rem', '1.55'], sm: ['0.9375rem', '1.6'] },
       colors: {
+        app: { bg: "var(--app-bg)", primary: "var(--app-primary)", text: "var(--app-text)", border: "var(--app-border)", tint: "var(--app-tint)" },
+        red: { 500: '#bd3e4f', 600: '#a63242' },
+        green: { 500: '#477360', 600: '#3c6b51' },
+        blue: { 500: '#426b9c', 600: '#365b88' },
+        pink: { 500: '#ad4473', 600: '#97365f' },
+        yellow: { 500: '#86631c', 600: '#80601b' },
+        orange: { 500: '#ad5826', 600: '#985025' },
         brand: {
-          50: '#f0f7ff',
-          100: '#ddefff',
-          200: '#b3d8ff',
-          300: '#80bfff',
-          400: '#429af5',
-          500: '#0071e3',  // Apple blue
-          600: '#0062c3',
-          700: '#004f9e',
+          50: '#f3f8fc',
+          100: '#e8f2fa',
+          200: '#d8e6f0',
+          300: '#aecbdf',
+          400: '#7ba6c6',
+          500: '#3974a6',  // MealLog blue
+          600: '#2e6391',
+          700: '#263f56',
         },
         primary: {
           50: '#fafafa',
@@ -30,11 +38,11 @@ export default {
           900: '#171717',
         },
         apple: {
-          bg: '#f5f5f7',
-          text: '#1d1d1f',
-          secondary: '#6e6e73',
-          border: '#d2d2d7',
-          'border-light': '#e5e5ea',
+          bg: '#f0f6fa',
+          text: '#263f56',
+          secondary: '#586b7a',
+          border: '#c8dce9',
+          'border-light': '#d8e6f0',
         },
       },
       backgroundImage: {

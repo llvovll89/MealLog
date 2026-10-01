@@ -1,3 +1,5 @@
+import { assertStorageWritable, notifyStorageChanged } from './storage';
+
 export interface NotificationPrefs {
   enabled: boolean;
   breakfast: string; // "HH:MM"
@@ -24,7 +26,9 @@ export const getNotificationPrefs = (): NotificationPrefs => {
 };
 
 export const saveNotificationPrefs = (prefs: NotificationPrefs): void => {
+  assertStorageWritable();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+  notifyStorageChanged();
 };
 
 export type PermissionStatus = 'granted' | 'denied' | 'default' | 'unsupported';
@@ -104,7 +108,7 @@ export const clearScheduledNotifications = (): void => {
  */
 export const scheduleMealNotifications = (prefs: NotificationPrefs): void => {
   clearScheduledNotifications();
-  if (!prefs.enabled || Notification.permission !== 'granted') return;
+  if (!prefs.enabled || getPermissionStatus() !== 'granted') return;
 
   const now = new Date();
 

@@ -51,10 +51,10 @@ function App() {
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-app-bg relative overflow-x-hidden">
-        <div className="relative max-w-[460px] mx-auto min-h-screen">
+      <div className="app-shell">
+        <div className="app-layout">
           <Header />
-          <main className="pt-[92px] pb-[84px] px-3">
+          <main id="main-content" className="app-main" key={currentTab}>
             {renderContent()}
           </main>
           <Navigation currentTab={currentTab} onTabChange={setCurrentTab} />

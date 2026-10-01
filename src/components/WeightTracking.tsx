@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { WeightRecord } from '../types';
 import { getWeightRecords, saveWeightRecord, deleteWeightRecord, getProfile, saveProfile } from '../utils/storage';
 import { formatDate } from '../utils/recommendationEngine';
-import { useToast } from '../context/ToastContext';
+import BMICalculator from './BMICalculator';
+import { useStorageRevision } from '../hooks/useStorageRevision';
+import { storageErrorMessage } from '../utils/storage';
+import { useToast } from '../hooks/useToast';
 
 const SVG_W = 320;
 const SVG_H = 140;
@@ -45,8 +48,8 @@ const WeightChart = ({
     targetWeight !== null && targetWeight >= yMin && targetWeight <= yMax;
 
   return (
-    <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4">
-      <h3 className="text-sm font-bold text-[#1f1d19] mb-2 flex items-center gap-2">
+    <div className="bg-[#f0f6fa] rounded-2xl p-4">
+      <h3 className="text-sm font-bold text-[#263f56] mb-2 flex items-center gap-2">
         <span>📉</span>
         <span>체중 변화 그래프</span>
       </h3>
@@ -71,7 +74,7 @@ const WeightChart = ({
               y1={toY(targetWeight!)}
               x2={PAD.left + C_W}
               y2={toY(targetWeight!)}
-              stroke="#34c759"
+              stroke="#477360"
               strokeWidth={1.5}
               strokeDasharray="5 3"
             />
@@ -79,7 +82,7 @@ const WeightChart = ({
               x={PAD.left + C_W + 2}
               y={toY(targetWeight!) + 3.5}
               fontSize={8}
-              fill="#34c759"
+              fill="#477360"
             >
               목표
             </text>
@@ -91,8 +94,8 @@ const WeightChart = ({
 
         <defs>
           <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0071e3" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="#0071e3" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="#3974a6" stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#3974a6" stopOpacity="0.02" />
           </linearGradient>
         </defs>
         <path d={areaPath} fill="url(#areaGrad)" />
@@ -100,7 +103,7 @@ const WeightChart = ({
         <path
           d={linePath}
           fill="none"
-          stroke="#0071e3"
+          stroke="#3974a6"
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -113,7 +116,7 @@ const WeightChart = ({
             cy={toY(r.weight)}
             r={3.5}
             fill="white"
-            stroke="#0071e3"
+            stroke="#3974a6"
             strokeWidth={2}
           />
         ))}
@@ -125,37 +128,25 @@ const WeightChart = ({
           {chartData[chartData.length - 1].date.slice(5)}
         </text>
       </svg>
-      <p className="text-[10px] text-[#7a7266] text-center mt-1">
+      <p className="text-[12px] text-[#586b7a] text-center mt-1">
         최근 {chartData.length}회 기록 기준
       </p>
     </div>
   );
 };
 
-const inputClass = "w-full px-4 py-2.5 border border-[#d8d1c4] bg-white rounded-xl focus:border-[#1f3b5b] focus:ring-2 focus:ring-[#1f3b5b]/15 focus:outline-none transition-all text-sm";
+const inputClass = "w-full px-4 py-2.5 border border-[#d8e6f0] bg-white rounded-xl focus:border-[#3974a6] focus:ring-2 focus:ring-[#3974a6]/15 focus:outline-none transition-all text-sm";
 
 const WeightTracking = () => {
   const toast = useToast();
-  const [records, setRecords] = useState<WeightRecord[]>([]);
+  useStorageRevision();
+  const records = getWeightRecords().sort((a,b) => b.date.localeCompare(a.date) || b.timestamp - a.timestamp);
   const [weight, setWeight] = useState('');
   const [date, setDate] = useState(formatDate(new Date()));
   const [note, setNote] = useState('');
-  const [targetWeight, setTargetWeight] = useState('');
+  const [targetWeight, setTargetWeight] = useState(() => getProfile()?.targetWeight?.toString() ?? '');
   const [showTargetInput, setShowTargetInput] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadRecords();
-    const profile = getProfile();
-    if (profile?.targetWeight) setTargetWeight(profile.targetWeight.toString());
-  }, []);
-
-  const loadRecords = () => {
-    const allRecords = getWeightRecords().sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-    setRecords(allRecords);
-  };
 
   const handleSave = () => {
     const weightNum = parseFloat(weight);
@@ -164,6 +155,7 @@ const WeightTracking = () => {
       return;
     }
 
+    try {
     saveWeightRecord({
       id: crypto.randomUUID(),
       date,
@@ -171,18 +163,19 @@ const WeightTracking = () => {
       timestamp: Date.now(),
       note: note.trim() || undefined,
     });
-    loadRecords();
     setWeight('');
     setNote('');
     setDate(formatDate(new Date()));
     toast.success('체중이 기록되었습니다!');
+    } catch(error) { toast.error(storageErrorMessage(error)); }
   };
 
   const handleDelete = (id: string) => {
+    try {
     deleteWeightRecord(id);
     setConfirmDeleteId(null);
-    loadRecords();
     toast.success('기록이 삭제되었습니다.');
+    } catch(error) { toast.error(storageErrorMessage(error)); }
   };
 
   const handleSaveTarget = () => {
@@ -192,9 +185,11 @@ const WeightTracking = () => {
       return;
     }
     const profile = getProfile();
+    try {
     saveProfile({ height: 0, weight: 0, ...profile, targetWeight: targetNum });
     setShowTargetInput(false);
     toast.success('목표 체중이 저장되었습니다!');
+    } catch(error) { toast.error(storageErrorMessage(error)); }
   };
 
   const getWeightChange = () => {
@@ -212,18 +207,18 @@ const WeightTracking = () => {
     currentWeight && targetWeightNum ? currentWeight - targetWeightNum : null;
 
   return (
-    <div className="max-w-[460px] mx-auto animate-fade-in">
-      <div className="bg-[#f5f2ec] rounded-[30px] border border-[#ddd4c3] shadow-none p-4">
-        <div className="text-left mb-5 px-1">
-          <p className="text-[11px] font-semibold text-[#6b6358] mb-1">체중 관리</p>
+    <div className="page-content ">
+      <div className="page-section">
+        <div className="page-heading">
+          <p className="text-[13px] font-semibold text-[#586b7a] mb-1">체중 관리</p>
           <div className="flex items-center justify-between">
-            <h2 className="text-[24px] font-black text-[#1f1d19] tracking-tight leading-tight">체중 추적</h2>
-            <span className="text-3xl animate-float">📈</span>
+            <h2 className="text-[24px] font-black text-[#263f56] tracking-tight leading-tight">체중 추적</h2>
+            <span className="text-3xl ">📈</span>
           </div>
-          <p className="text-xs text-[#7a7266] mt-1">체중을 기록하고 변화를 추적하세요</p>
+          <p className="text-xs text-[#586b7a] mt-1">체중을 기록하고 변화를 추적하세요</p>
         </div>
 
-        <div className="bg-white rounded-3xl border border-[#d8d1c4] p-4 shadow-none">
+        <div className="content-surface">
 
         {/* 현재 상태 */}
         {currentWeight && (
@@ -236,7 +231,7 @@ const WeightTracking = () => {
               <div className="stat-card">
                 <p className="text-xs text-apple-secondary mb-1">목표 체중까지</p>
                 <p
-                  className={`text-2xl font-bold ${remainingWeight && remainingWeight > 0 ? 'text-red-500' : 'text-[#34c759]'}`}
+                  className={`text-2xl font-bold ${remainingWeight && remainingWeight > 0 ? 'text-red-500' : 'text-[#477360]'}`}
                 >
                   {remainingWeight !== null
                     ? `${remainingWeight > 0 ? '+' : ''}${remainingWeight.toFixed(1)}kg`
@@ -249,7 +244,7 @@ const WeightTracking = () => {
 
         {/* 체중 변화 */}
         {weightChange && (
-          <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4 mb-5">
+          <div className="bg-[#f0f6fa] rounded-2xl p-4 mb-5">
             <h3 className="text-sm font-bold text-apple-text mb-2 flex items-center gap-2">
               <span>📊</span>
               <span>전체 변화량</span>
@@ -260,7 +255,7 @@ const WeightTracking = () => {
                   className={`text-2xl font-bold ${weightChange.change > 0
                       ? 'text-red-500'
                       : weightChange.change < 0
-                        ? 'text-[#34c759]'
+                        ? 'text-[#477360]'
                         : 'text-apple-text'
                     }`}
                 >
@@ -272,7 +267,7 @@ const WeightTracking = () => {
                   {weightChange.percentage.toFixed(2)}%
                 </p>
               </div>
-              <div className="text-xs text-[#1f3b5b] font-medium bg-[#eee8dd] border border-[#d6cebe] px-3 py-1.5 rounded-full">총 {records.length}회 기록</div>
+              <div className="text-xs text-[#3974a6] font-medium bg-[#e8f2fa] px-3 py-1.5 rounded-full">총 {records.length}회 기록</div>
             </div>
           </div>
         )}
@@ -285,7 +280,7 @@ const WeightTracking = () => {
         {/* 목표 체중 설정 */}
         <div className="mb-5">
           {!showTargetInput ? (
-            <div className="flex items-center justify-between bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-3">
+            <div className="flex items-center justify-between bg-[#f0f6fa] rounded-2xl p-3">
               <div>
                 <p className="text-xs text-apple-secondary">목표 체중</p>
                 <p className="font-semibold text-apple-text">
@@ -294,33 +289,33 @@ const WeightTracking = () => {
               </div>
               <button
                 onClick={() => setShowTargetInput(true)}
-                className="px-4 py-2 bg-[#1f3b5b] text-white rounded-xl hover:bg-[#17324f] transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-[#3974a6] text-white rounded-xl hover:bg-[#2e6391] transition-colors text-sm font-medium"
               >
                 {targetWeightNum ? '변경' : '설정'}
               </button>
             </div>
           ) : (
-            <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4">
-              <label className="block text-xs font-semibold text-apple-secondary mb-2">
+            <div className="bg-[#f0f6fa] rounded-2xl p-4">
+              <label htmlFor="weighttracking-field-1" className="block text-xs font-semibold text-apple-secondary mb-2">
                 목표 체중 (kg)
               </label>
               <div className="flex gap-2">
                 <input
-                  type="number"
+id="weighttracking-field-1"                   type="number"
                   value={targetWeight}
                   onChange={(e) => setTargetWeight(e.target.value)}
                   placeholder="65"
-                  className="flex-1 px-4 py-2.5 border border-[#d8d1c4] bg-white rounded-xl focus:border-[#1f3b5b] focus:ring-2 focus:ring-[#1f3b5b]/15 focus:outline-none transition-all text-sm"
+                  className="flex-1 px-4 py-2.5 border border-[#d8e6f0] bg-white rounded-xl focus:border-[#3974a6] focus:ring-2 focus:ring-[#3974a6]/15 focus:outline-none transition-all text-sm"
                 />
                 <button
                   onClick={handleSaveTarget}
-                  className="px-4 py-2.5 bg-[#1f3b5b] text-white rounded-xl hover:bg-[#17324f] transition-colors text-sm font-medium"
+                  className="px-4 py-2.5 bg-[#3974a6] text-white rounded-xl hover:bg-[#2e6391] transition-colors text-sm font-medium"
                 >
                   저장
                 </button>
                 <button
                   onClick={() => setShowTargetInput(false)}
-                  className="px-4 py-2.5 bg-[#f8f5ef] text-[#6b6358] rounded-xl hover:bg-[#f1ebe0] transition-all text-sm font-medium border border-[#e3dccf]"
+                  className="px-4 py-2.5 bg-[#f0f6fa] text-[#586b7a] rounded-xl hover:bg-[#d8e6f0] transition-all text-sm font-medium border border-[#d8e6f0]"
                 >
                   취소
                 </button>
@@ -330,17 +325,17 @@ const WeightTracking = () => {
         </div>
 
         {/* 체중 기록하기 */}
-        <div className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-4 mb-5">
+        <div className="bg-[#f0f6fa] rounded-2xl p-4 mb-5">
           <h3 className="text-sm font-bold text-apple-text mb-3">체중 기록하기</h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-apple-secondary mb-1.5">날짜</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+              <label htmlFor="weighttracking-field-2" className="block text-xs font-semibold text-apple-secondary mb-1.5">날짜</label>
+              <input id="weighttracking-field-2" type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-apple-secondary mb-1.5">체중 (kg)</label>
+              <label htmlFor="weighttracking-field-3" className="block text-xs font-semibold text-apple-secondary mb-1.5">체중 (kg)</label>
               <input
-                type="number"
+id="weighttracking-field-3"                 type="number"
                 step="0.1"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
@@ -349,9 +344,9 @@ const WeightTracking = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-apple-secondary mb-1.5">메모 (선택)</label>
+              <label htmlFor="weighttracking-field-4" className="block text-xs font-semibold text-apple-secondary mb-1.5">메모 (선택)</label>
               <input
-                type="text"
+id="weighttracking-field-4"                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="예: 아침 측정, 운동 후"
@@ -360,7 +355,7 @@ const WeightTracking = () => {
             </div>
             <button
               onClick={handleSave}
-              className="w-full py-3 bg-[#1f3b5b] text-white font-semibold rounded-xl hover:bg-[#17324f] active:bg-[#13263c] transition-colors"
+              className="w-full py-3 bg-[#3974a6] text-white font-semibold rounded-xl hover:bg-[#2e6391] active:bg-[#263f56] transition-colors"
             >
               기록하기
             </button>
@@ -376,7 +371,7 @@ const WeightTracking = () => {
 
           {records.length === 0 ? (
             <div className="text-center py-10 text-apple-secondary">
-              <span className="text-4xl mb-3 inline-block animate-float">📭</span>
+              <span className="text-4xl mb-3 inline-block ">📭</span>
               <p className="text-base font-medium">기록된 체중이 없습니다</p>
               <p className="text-xs mt-1">위에서 체중을 기록해보세요!</p>
             </div>
@@ -389,7 +384,7 @@ const WeightTracking = () => {
                 return (
                   <div
                     key={record.id}
-                    className="bg-[#f8f5ef] border border-[#e3dccf] rounded-2xl p-3 hover:border-[#8fb5f8] transition-all"
+                    className="bg-[#f0f6fa] rounded-2xl p-3 hover:border-[#7ba6c6] transition-all"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
@@ -400,7 +395,7 @@ const WeightTracking = () => {
                               className={`text-xs font-semibold px-2 py-0.5 rounded-full ${change > 0
                                   ? 'bg-red-100 text-red-500'
                                   : change < 0
-                                    ? 'bg-green-100 text-[#34c759]'
+                                    ? 'bg-green-100 text-[#477360]'
                                     : 'bg-gray-100 text-apple-secondary'
                                 }`}
                             >
@@ -446,6 +441,10 @@ const WeightTracking = () => {
         </div>
       </div>
       </div>
+      <details className="content-surface mt-6">
+        <summary className="font-semibold cursor-pointer py-2">키와 체중으로 BMI 확인하기</summary>
+        <div className="pt-6"><BMICalculator /></div>
+      </details>
     </div>
   );
 };
